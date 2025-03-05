@@ -1,0 +1,42 @@
+<!doctype html>
+
+<html>
+    <head>
+        <title>Blazing Adoptions</title>
+
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"/>
+    </head>
+
+    <body class="auth-body">
+
+        <h1> Codersonly.com </h1>
+        <div class="auth-container">
+            <h2>Register</h2>
+            <p> Welcome to Codersonly.com! </p>
+            <p> Please enter your Username, email, and password below to create an account: </p>
+            {% with messages = get_flashed_messages(with_categories=true) %} {%
+            if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %} {% endwith %}
+
+            <form action="{{ url_for('register') }}" method="post">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required />
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required />
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required />
+                <input type="submit" value="Register" />
+            </form>
+
+            <p> Already have an account? </p>
+            <button onclick="window.location.href='{{ url_for('login') }}'">
+                Back to Login
+            </button>
+        </div>
+    </body>
+</html>

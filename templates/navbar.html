@@ -1,0 +1,47 @@
+<div class="navbar">
+
+    <div class="left-navbar">
+        <a href="{{ url_for('index') }}" class="home-btn">Home</a>
+        <a href="{{ url_for('create_post') }}" class="create-post-btn">Create Post</a>
+        <a href="{{ url_for('search_users') }}" class="create-post-btn">Search Users</a>
+        <a href="{{ url_for('create_group') }}" class="create-post-btn" >Create a Group</a>
+        <a href="{{ url_for('search_groups') }}" class="create-post-btn">Groups</a>
+    </div>
+
+    <h4> Blazing Adoptions </h4>
+    <div class="right-navbar">
+
+        <div class="dropdown">
+            <img src="{{ session['profile_picture'] }}" alt="Profile Picture" class="profile-picture"/>
+            <button class="dropbtn">{{ session['username'] }} &#9662;</button>
+            <div class="dropdown-content">
+                <a href="{{ url_for('view_profile', username=session['username']) }}">Profile</a>
+                <a href="{{ url_for('edit_profile') }}">Edit Profile</a>
+                <form action="{{ url_for('logout') }}" method="post" class="dropdown-logout-form">
+                <button type="submit" class="dropdown-link">Logout</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="notifs">
+            <button class="dropbtn"> Notifications ({{ notifs|length }}) &#9662;</button>
+            <div class="notifs-content dropdown-content">
+                {% if notifs %}
+                {% for notif in notifs %}
+                <div>
+                    Follow request from {{ notif.follower.username }}
+                    <form action="{{ url_for('follow', user=notif.follower.id, action='approve') }}" method="post">
+                        <button type="submit" class="dropdown-link">Approve</button>
+                    </form>
+                    <form action="{{ url_for('follow', user=notif.follower.id, action='decline') }}" method="post">
+                        <button type="submit" class="dropdown-link">Decline</button>
+                    </form>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p>No notifications</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

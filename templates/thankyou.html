@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Thank You</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"/>
+    </head>
+
+    <body class="auth-body">
+        <h1> Blazing Adoptions </h1>
+        <div class="auth-container"> 
+            <h2>Thank you for creating an account on Codersonly.com!</h2>
+            <form action="{{ url_for('login') }}" method="GET" class="login-form"> <button type="submit" class="login-button">Back to Login</button> </form>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Edit Profile</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+
+    <body>
+        {% include 'navbar.html' %}
+        <div class="container">
+            <h2>Edit Profile</h2>
+            <form action="{{ url_for('edit_profile') }}" method="post" enctype="multipart/form-data">
+                <label for="bio">Bio:</label>
+                <textarea class="bio-input-box" name="bio" id="bio">{{ user.bio }}</textarea>
+                <label for="profile_picture">Profile Picture:</label>
+                <input type="file" name="profile_picture" id="profile_picture" accept=".png, .jpg, .jpeg">
+                <label for="is_private">Private Profile:</label>
+                <input class="privacy-toggle" type="checkbox" name="is_private" id="is_private" {% if user.is_private %}checked{% endif %}>
+                {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
+                <ul class="flashes">
+                    {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %} {% endwith %}
+                <button class="save-profile-button" type="submit">Save Changes</button>
+            </form>
+        </div>
+    </body>
+</html>
+ 
