@@ -433,7 +433,7 @@ def create_group_db(user_id, content, gname, gtype):
 
 if __name__ == "__main__":
     # uncomment line to rebuild cloud sql db with next deployment
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
+    # with app.app_context():
+    #     db.drop_all()
+    #     db.create_all()
     app.run(host="0.0.0.0", port=8080)
