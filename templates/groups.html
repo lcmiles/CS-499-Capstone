@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Search Groups</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+
+    <body>
+        {% include 'navbar.html' %}
+        <div class="container">
+            <h1>Groups</h1>
+            <p>Please enter a type of group you are looking to join. Use "*" to list all groups:</p>
+            <form action="{{url_for('search_groups')}}" method="GET">
+                <input class="search-box" type="text" name="gsearch" placeholder="Enter a group name" required>
+                <button type="submit">Search</button>
+            </form>
+
+
+            <div class="search-results">
+                {% if groups %}
+                <ul>
+                    {% for group in groups %}
+                    <li>
+                        <a class="username" href="{{ url_for('view_group', groupname=group.gname) }}">{{ group.gname }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% elif query %}
+                    <p> No Groups found for "{{ query }}"</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </body>

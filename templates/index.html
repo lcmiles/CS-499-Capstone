@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Home</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+
+    <body>
+        {% include 'navbar.html' %}
+        <div class="container">
+            {% for post in posts %}
+                <div onclick="location.href='{{ url_for('post_page', post_id=post.id) }}';" class="post">
+                    <div class="post-box">
+                        <div class="post-header">
+                            <img src="{{ post.user.profile_picture }}" alt="Profile Picture" class="post-profile-picture">
+                            <span class="username-container">
+                                <a style="color:forestgreen" href="{{ url_for('view_profile', username=post.user.username) }}" class="username">{{ post.user.username }}</a></span>
+                            <span class="time" data-timestamp="{{ post.timestamp.isoformat() }}">{{ post.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                        </div>
+
+                        <div class="post-content">{{ post.content }}</div>
+                        {% if post.photo %}
+                            <div class="post-photo">
+                                <img src="{{ post.photo }}" alt="Post Photo">
+                            </div>
+                        {% endif %}
+                        {% if post.video %}
+                            <div class="post-video">
+                                <video controls>
+                                    <source src="{{ post.video }}" type="video/mp4">
+                                </video>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                var elements = document.getElementsByClassName("time");
+                for (var i = 0; i < elements.length; i++) {
+                    var element = elements[i];
+                    var utcTime = element.getAttribute("data-timestamp");
+                    var localTime = new Date(utcTime);
+                    element.textContent = localTime.toLocaleString('en-US', { timeZone: 'America/Chicago' });
+                }
+            });
+        </script>
+    </body>
+</html>

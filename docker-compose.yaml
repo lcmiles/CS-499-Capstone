@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  web:
+    build: '.'
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./static/profile_pics:/app/static/profile_pics
+      - ./static/uploads:/app/static/uploads
+    restart: unless-stopped
