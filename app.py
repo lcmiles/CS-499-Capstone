@@ -19,10 +19,9 @@ if LOCAL_TESTING:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = (
-        "mysql+pymysql://root:AIrA$V{q$7:80J77@/cs-499-final-project-db?unix_socket=/cloudsql/cs-499-final-project:us-central1:cs-499-final-project-sql-instance"
+        "mysql+pymysql://root:m1=;KmQ>=]|[-\J_@/cs-499-final-project-db?unix_socket=/cloudsql/cs-499-final-project:us-central1:cs-499-final-project-db"
     )
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
-
+    
 app.config["GCS_BUCKET"] = "cs-499-final-project-uploads"
 app.config["PROFILE_UPLOAD_FOLDER"] = "cs-499-final-project-uploads/profile_pics"
 
