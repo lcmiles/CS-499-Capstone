@@ -9,19 +9,39 @@ from google.cloud import storage
 import google.auth
 import os
 import traceback
+from google.cloud.sql.connector import Connector
+from sqlalchemy import create_engine
+import sqlalchemy
 
 app = Flask(__name__)
 
 LOCAL_TESTING = False  # Set True if running locally
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cs-499-final-project-177edd5f02ab.json"
 
+INSTANCE_CONNECTION_NAME = "cs-499-final-project:us-central1:cs-499-final-project-db"
+DB_USER = "root"
+DB_PASS = "m1=;KmQ>=]|[-\J_"
+DB_NAME = "cs-499-final-project-db"
+
+connector = Connector()
+
+def getconn():
+    conn = connector.connect(
+        INSTANCE_CONNECTION_NAME,
+        "pymysql",
+        user=DB_USER,
+        password=DB_PASS,
+        db=DB_NAME,
+    )
+    return conn
+
 if LOCAL_TESTING:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        "mysql+pymysql://db_user:cs499@/cs-499-final-project-db?unix_socket=/cloudsql/cs-499-final-project:us-central1:cs-499-final-project-db"
-    )
-    
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{DB_USER}:{DB_PASS}@/{DB_NAME}?unix_socket=/cloudsql/{INSTANCE_CONNECTION_NAME}"
+    engine = create_engine("mysql+pymysql://", creator=getconn)
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"creator": getconn}
+
 app.config["GCS_BUCKET"] = "cs-499-final-project-uploads"
 app.config["PROFILE_UPLOAD_FOLDER"] = "cs-499-final-project-uploads/profile_pics"
 
@@ -432,7 +452,7 @@ def create_group_db(user_id, content, gname, gtype):
 
 if __name__ == "__main__":
     # uncomment line to rebuild cloud sql db with next deployment
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
+    # with app.app_context():
+    #     db.drop_all()
+    #     db.create_all()
     app.run(host="0.0.0.0", port=8080)
