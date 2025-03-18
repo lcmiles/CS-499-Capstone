@@ -9,7 +9,6 @@ from google.cloud import storage
 import google.auth
 import os
 import traceback
-from google.cloud.sql.connector import Connector
 from sqlalchemy import create_engine
 import sqlalchemy
 
@@ -18,29 +17,15 @@ app = Flask(__name__)
 LOCAL_TESTING = False  # Set True if running locally
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cs-499-final-project-177edd5f02ab.json"
 
-INSTANCE_CONNECTION_NAME = "cs-499-final-project:us-central1:cs-499-final-project-db"
-DB_USER = "root"
-DB_PASS = "m1=;KmQ>=]|[-\J_"
-DB_NAME = "cs-499-final-project-db"
-
-connector = Connector()
-
-def getconn():
-    conn = connector.connect(
-        INSTANCE_CONNECTION_NAME,
-        "pymysql",
-        user=DB_USER,
-        password=DB_PASS,
-        db=DB_NAME,
-    )
-    return conn
+DB_HOST = "logansserver1511.duckdns.org" # logan's linux server dns used for sql server
+DB_USER = "cs499user"
+DB_PASS = "cs499password"
+DB_NAME = "cs499_capstone_db"
 
 if LOCAL_TESTING:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{DB_USER}:{DB_PASS}@/{DB_NAME}?unix_socket=/cloudsql/{INSTANCE_CONNECTION_NAME}"
-    engine = create_engine("mysql+pymysql://", creator=getconn)
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"creator": getconn}
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
 
 app.config["GCS_BUCKET"] = "cs-499-final-project-uploads"
 app.config["PROFILE_UPLOAD_FOLDER"] = "cs-499-final-project-uploads/profile_pics"
