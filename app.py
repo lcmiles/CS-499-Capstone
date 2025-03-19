@@ -1,4 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, get_flashed_messages
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    flash,
+    get_flashed_messages,
+)
 from flask_cors import CORS
 from models import *
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -17,7 +26,7 @@ app = Flask(__name__)
 LOCAL_TESTING = False  # Set True if running locally
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cs-499-final-project-177edd5f02ab.json"
 
-DB_HOST = "logansserver1511.duckdns.org" # logan's linux server dns used for sql server
+DB_HOST = "logansserver1511.duckdns.org"  # logan's linux server dns used for sql server
 DB_USER = "cs499user"
 DB_PASS = "cs499password"
 DB_NAME = "cs499_capstone_db"
@@ -25,7 +34,9 @@ DB_NAME = "cs499_capstone_db"
 if LOCAL_TESTING:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
+    )
 
 app.config["GCS_BUCKET"] = "cs-499-final-project-uploads"
 app.config["PROFILE_UPLOAD_FOLDER"] = "cs-499-final-project-uploads/profile_pics"
@@ -377,7 +388,7 @@ def view_group(groupname):
 
     user_id = session["user_id"]
     follow_status = part_of_group(user_id, grp.id)
-    
+
     posts = get_posts_by_group(grp.id)
 
     return render_template(

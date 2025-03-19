@@ -83,7 +83,7 @@
             <p1> Posts hidden because this account is private. Send a follow request to this user to see their posts! </p1>
         {% endif %}
                 {% for post in posts %}
-                    {% if post.is_public or session['user_id'] == user.id or get_follow_status(session['user_id'], user.id) == 1 %}
+                    {% if post.user.is_private == false or session['user_id'] == user.id or get_follow_status(session['user_id'], user.id) == 1 %}
                         <div onclick="location.href='{{ url_for('post_page', post_id=post.id) }}';" class="post">
                             <div class="post-box">
                                 <div class="post-header">
