@@ -17,19 +17,27 @@
                     <span class="time" data-timestamp="{{ post.timestamp.isoformat() }}">{{ post.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
                 </div>
 
+                {% if post.photos %}
+                    <div class="post-photos">
+                        {% for photo in post.photos %}
+                            <div class="post-photo">
+                                <img src="{{ photo }}" alt="Post Photo">
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if post.videos %}
+                    <div class="post-videos">
+                        {% for video in post.videos %}
+                            <div class="post-video">
+                                <video controls>
+                                    <source src="{{ video }}" type="video/mp4">
+                                </video>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 <div class="post-content">{{ post.content }}</div>
-                {% if post.photo %}
-                    <div class="post-photo">
-                        <img src="{{ post.photo }}" alt="Post Photo">
-                    </div>
-                {% endif %}
-                {% if post.video %}
-                    <div class="post-video">
-                        <video controls>
-                            <source src="{{ post.video }}" type="video/mp4">
-                        </video>
-                    </div>
-                {% endif %}
                 <form action="{{url_for('server_like', post_id=post.id)}}" method="post">
                     <input class="like-button" type="image" src="{{ url_for('static', filename='assets/Icon-like-button-transparent-PNG.png') }}">
                 </form>

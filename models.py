@@ -10,14 +10,12 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-
-user_group = db.Table(
-    "group_followers",
-    db.Column("group_id", db.Integer, db.ForeignKey("group.id"), primary_key=True),
-    db.Column("user_id", db.Integer, db.ForeignKey("user.id"), primary_key=True),
-    db.Column("timestamp", db.DateTime, default=datetime.utcnow),
+# Association table for saved pets
+saved_pets_table = db.Table(
+    'saved_pets',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('pet_id', db.Integer, db.ForeignKey('pet.id'), primary_key=True)
 )
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -37,34 +35,22 @@ class User(db.Model):
     following: Mapped[List["Follow"]] = db.relationship(
         primaryjoin="and_(User.id==Follow.follower_id, Follow.approved==1)"
     )
-
-    followed_groups = db.relationship(
-        "Group", secondary=user_group, back_populates="group_followed_by"
-    )
-
-
-class Group(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    gname = db.Column(db.Text)
-    gtype = db.Column(db.Text)
-    group_followed_by = db.relationship(
-        "User", secondary=user_group, back_populates="followed_groups"
+    saved_pets = db.relationship(
+        'Pet',
+        secondary=saved_pets_table,
+        backref=db.backref('saved_by_users', lazy='dynamic'),
+        lazy='dynamic'
     )
 
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    group_id = db.Column(db.Integer, db.ForeignKey("group.id"), nullable=True)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    photo = db.Column(db.String(120), nullable=True)
-    video = db.Column(db.String(120), nullable=True)
+    photos = db.Column(db.PickleType, nullable=True)  # Store list of photo URLs
+    videos = db.Column(db.PickleType, nullable=True)  # Store list of video URLs
     user = db.relationship("User", backref=db.backref("posts", lazy=True))
-    group = db.relationship("Group", backref=db.backref("posts", lazy=True))
 
 
 class Comment(db.Model):
@@ -98,6 +84,18 @@ class Follow(db.Model):
     )
 
 
+class Pet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    breed = db.Column(db.String(50), nullable=True)
+    age = db.Column(db.Integer, nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    photo = db.Column(db.String(120), nullable=True)
+    is_adopted = db.Column(db.Boolean, default=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    user = db.relationship("User", backref=db.backref("adopted_pets", lazy=True))  # Renamed backref to 'adopted_pets'
+
+
 def create_user(email, username, password):
     new_user = User(email=email, username=username, password=password)
     db.session.add(new_user)
@@ -124,12 +122,15 @@ def update_profile(user_id, bio, profile_picture):
     db.session.commit()
 
 
-def create_post_db(user_id, post_content, photo=None, video=None):
-
-    new_post = Post(user_id=user_id, content=post_content, photo=photo, video=video)
-
+def create_post_db(user_id, post_content, photos=None, videos=None):
+    new_post = Post(
+        user_id=user_id,
+        content=post_content,
+        photos=photos,
+        videos=videos,
+        timestamp=datetime.utcnow(),
+    )
     db.session.add(new_post)
-
     db.session.commit()
 
 
@@ -146,14 +147,10 @@ def get_posts(user_id=None, current_user_id=None):
                     follower_id=current_user_id, approved=1
                 ).all()
             ]
-            group_ids = [
-                group.id for group in User.query.get(current_user_id).followed_groups
-            ]
             return (
                 Post.query.filter(
                     (Post.user_id.in_(following_ids))
                     | (Post.user_id == current_user_id)
-                    | (Post.group_id.in_(group_ids))
                     | (Post.user.has(User.is_private == False))
                 )
                 .order_by(desc(Post.timestamp))
@@ -169,15 +166,6 @@ def get_posts(user_id=None, current_user_id=None):
 def get_post_by_id(post_id):
 
     return Post.query.filter_by(id=post_id)
-
-def get_posts_by_group(group_id):
-    group = Group.query.get(group_id)
-    if not group:
-        return []
-
-    follower_ids = [follower.id for follower in group.group_followed_by]
-    posts = Post.query.filter(Post.user_id.in_(follower_ids)).order_by(Post.timestamp.desc()).all()
-    return posts
 
 
 def add_comment(post_id, user_id, content):
@@ -241,63 +229,32 @@ def get_follow_status(follower_id, followed_id):
     return -1
 
 
-def part_of_group(user_id, group_id):
-    association = (
-        db.session.query(user_group)
-        .filter_by(user_id=user_id, group_id=group_id)
-        .first()
-    )
-    if association:
-        return True
-    return False
+def search_pets(name=None, breed=None):
+    query = Pet.query.filter_by(is_adopted=False)
+    if name:
+        query = query.filter(Pet.name.contains(name))
+    if breed:
+        query = query.filter_by(breed=breed)
+    return query.all()
 
 
-def get_group_by_name(gname):
-    group = Group.query.filter(Group.gname == gname).first()
-    return group
-
-
-def get_group_by_id(gid):
-    group = Group.query.filter(Group.id == gid).first()
-    return group
-
-
-def toggle_group_follow(userid, groupid, follow):
-    user = User.query.get(userid)
-    group = Group.query.get(groupid)
-
-    if follow:
-        if group not in user.followed_groups:
-            user.followed_groups.append(group)
-    else:
-        if group in user.followed_groups:
-            user.followed_groups.remove(group)
+def adopt_pet(pet_id, user_id):
+    pet = Pet.query.get(pet_id)
+    pet.is_adopted = True
+    pet.user_id = user_id
     db.session.commit()
 
 
-def approve_follow_request(follower_id, followed_id):
-    follow_request = Follow.query.filter_by(
-        follower_id=follower_id, followed_id=followed_id
-    ).first()
+def save_pet_to_account(pet_id, user_id):
+    user = User.query.get(user_id)
+    pet = Pet.query.get(pet_id)
+    if pet not in user.saved_pets:
+        user.saved_pets.append(pet)
+        db.session.commit()
 
-    follow_request.approved = 1
-
-    db.session.commit()
-
-
-def decline_follow_request(follower_id, followed_id):
-    follow_request = Follow.query.filter_by(
-        follower_id=follower_id, followed_id=followed_id
-    ).first()
-
-    db.session.delete(follow_request)
-
-    db.session.commit()
-
-
-def get_notifications(user_id):
-    return get_follow_requests(user_id)
-
+def get_saved_pets(user_id):
+    user = User.query.get(user_id)
+    return user.saved_pets.all()
 
 def init_db():
     db.create_all()

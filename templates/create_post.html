@@ -9,21 +9,28 @@
     <body>
         {% include 'navbar.html' %}
         <div class="container">
-            <p> Please enter the text and/or upload a photo/video with your post below:</p>
+            <p> Please enter the text and/or upload photos/videos with your post below:</p>
             <form action="{{ url_for('create_post') }}" method="post" enctype="multipart/form-data">
             <textarea class="post-input-box" placeholder="Enter your text here" name="post" type="text" required></textarea>
-            <a> Upload a photo/video: </a> <input type="file" name="photo" accept=".png, .jpg, .jpeg, .gif, .mp4, .avi, .mov">
-            {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
-                <ul class="flashes">
-                    {% for category, message in messages %}
-                    <li class="{{ category }}">{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %} {% endwith %}
+            <a> Upload photos: </a> <input type="file" name="photos" accept=".png, .jpg, .jpeg, .gif" multiple required>
+            <a> Upload videos: </a> <input type="file" name="videos" accept=".mp4, .avi, .mov" multiple>
+            <h3>Pet Information:</h3>
+            <div class="pet-info-container">
+                <label for="pet_name">Pet Name:</label>
+                <input class="pet-input-box" type="text" id="pet_name" name="pet_name" placeholder="Enter Pet Name" required>
+                
+                <label for="pet_breed">Breed:</label>
+                <input class="pet-input-box" type="text" id="pet_breed" name="pet_breed" placeholder="Enter Breed" required>
+                
+                <label for="pet_age">Age:</label>
+                <input class="pet-input-box" type="number" id="pet_age" name="pet_age" placeholder="Enter Age" required>
+                
+                <label for="pet_description">Description:</label>
+                <textarea class="pet-description-box" id="pet_description" name="pet_description" placeholder="Enter Pet Description" required></textarea>
+            </div>
             <input class="post-button" type="submit" value="Post">
             </form>
         </div>
     </body>
 
 </html>
- 

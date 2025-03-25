@@ -2,14 +2,13 @@
 
     <div class="left-navbar">
         <a href="{{ url_for('index') }}" class="home-btn">Home</a>
-        <a href="{{ url_for('create_post') }}" class="create-post-btn">Create Pet Listing</a>
+        <a href="{{ url_for('create_post') }}" class="create-post-btn">Create Post</a>
         <a href="{{ url_for('search_users') }}" class="create-post-btn">Search Users</a>
         <a href="{{ url_for('search_pets_route') }}" class="create-post-btn">Search Pets</a>
         <a href="{{ url_for('saved_pets') }}" class="create-post-btn">Saved Pets</a>
     </div>
 
-    <img src="{{ url_for('static', filename='assets/logo_small.png') }}" alt="Blazing Adoptions Logo" class="navbar-logo">
-
+    <h4> Blazing Adoptions </h4>
     <div class="right-navbar">
 
         <div class="dropdown">
