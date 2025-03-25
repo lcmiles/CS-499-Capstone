@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Saved Pets</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        {% include 'navbar.html' %}
+        <div class="container">
+            <h1>Saved Pets</h1>
+            <div class="search-results">
+                {% if pets %}
+                    <ul>
+                        {% for pet in pets %}
+                            <li>
+                                <img src="{{ pet.photo }}" alt="Pet Photo" class="pet-photo">
+                                <a href="{{ url_for('view_pet', pet_id=pet.id) }}">{{ pet.name|capitalize }}</a>
+                                <p style="margin-left: 10px;">{{ pet.breed|capitalize }} - {{ pet.age }} years old</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>You have no saved pets.</p>
+                {% endif %}
+            </div>
+        </div>
+    </body>
+</html>

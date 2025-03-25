@@ -124,33 +124,53 @@ def create_post():
     if request.method == "POST":
         user_id = session["user_id"]
         post_content = request.form.get("post")
-        photo = None
-        video = None
-        if "photo" in request.files:
-            photo_file = request.files["photo"]
-            if photo_file and allowed_file(photo_file.filename):
-                photo = upload_to_gcs(photo_file, app.config["GCS_BUCKET"], "uploads")
-            else:
-                flash("Unsupported photo file type.", "error")
-                return render_template("create_post.html")
-        if "video" in request.files:
-            video_file = request.files["video"]
-            if video_file and allowed_file(video_file.filename):
-                video = upload_to_gcs(video_file, app.config["GCS_BUCKET"], "uploads")
-            else:
-                flash("Unsupported video file type.", "error")
-                return render_template("create_post.html")
-        create_post_db(user_id, post_content, photo, video)
+        pet_name = request.form.get("pet_name")
+        pet_breed = request.form.get("pet_breed")
+        pet_age = request.form.get("pet_age")
+        pet_description = request.form.get("pet_description")
+        photos = []
+        videos = []
+        if "photos" in request.files:
+            for photo_file in request.files.getlist("photos"):
+                if photo_file and allowed_file(photo_file.filename):
+                    photo_url = upload_to_gcs(photo_file, app.config["GCS_BUCKET"], "uploads")
+                    photos.append(photo_url)
+                else:
+                    flash("Unsupported photo file type.", "error")
+                    return render_template("create_post.html")
+        if not photos:
+            flash("At least one photo is required for a pet listing.", "error")
+            return render_template("create_post.html")
+        if "videos" in request.files:
+            for video_file in request.files.getlist("videos"):
+                if video_file and allowed_file(video_file.filename):
+                    video_url = upload_to_gcs(video_file, app.config["GCS_BUCKET"], "uploads")
+                    videos.append(video_url)
+                elif video_file.filename:
+                    flash("Unsupported video file type.", "error")
+                    return render_template("create_post.html")
+        create_post_db(user_id, post_content, photos, videos)
+        if pet_name and pet_age:
+            new_pet = Pet(
+                name=pet_name,
+                breed=pet_breed,
+                age=int(pet_age),
+                description=pet_description or "No description provided.",
+                photo=photos[0] if photos else None,
+                user_id=user_id,
+            )
+            db.session.add(new_pet)
+            db.session.commit()
         return redirect(url_for("index"))
     return render_template("create_post.html")
 
 
-def create_post_db(user_id, post_content, photo, video):
+def create_post_db(user_id, post_content, photos=None, videos=None):
     new_post = Post(
         user_id=user_id,
         content=post_content,
-        photo=photo,
-        video=video,
+        photos=photos,
+        videos=videos,
         timestamp=datetime.utcnow(),
     )
     db.session.add(new_post)
@@ -334,11 +354,10 @@ def server_like(post_id):
 @app.route("/search", methods=["GET"])
 def search_users():
     query = request.args.get("query")
-    users = []
-    if query == "*":
+    if query:
+        users = User.query.filter(User.username.ilike(f"%{query}%")).all()
+    else:
         users = User.query.all()
-    elif query:
-        users = User.query.filter(User.username.contains(query)).all()
     return render_template("search.html", users=users, query=query)
 
 
@@ -353,102 +372,72 @@ def internal_error(error):
     return render_template("404.html", error=error), 404
 
 
-@app.route("/followgroup", methods=["POST"])
-def followgroup():
+@app.route("/search_pets", methods=["GET"])
+def search_pets_route():
     if "user_id" not in session:
         return redirect(url_for("login"))
-    user_id = session["user_id"]
-    group_id = request.form.get("groupid")
-    action = request.form.get("action")
+    query = request.args.get("query")
+    if not query:
+        flash("Please fill out this field.", "error")
+        pets = Pet.query.filter_by(is_adopted=False).all()
+    else:
+        pets = Pet.query.filter(
+            (Pet.name.ilike(f"%{query}%")) | (Pet.breed.ilike(f"%{query}%"))
+        ).filter_by(is_adopted=False).all()
+    return render_template("search_pets.html", pets=pets)
 
-    if not user_id or not group_id:
-        return "Missing user or group ID", 400
-
-    group = get_group_by_id(group_id)
-
-    if action == "follow":
-        toggle_group_follow(user_id, group_id, follow=True)
-        flash("You are now following ", "success")
-    elif action == "unfollow":
-        toggle_group_follow(user_id, group_id, follow=False)
-        flash("You are now unfollowing ", "success")
-
-    userrelation = get_group_by_id(group_id)
-    return redirect(url_for("view_group", groupname=group.gname))
-
-
-@app.route("/groups/<groupname>", methods=["GET"])
-def view_group(groupname):
+@app.route("/saved_pets", methods=["GET"])
+def saved_pets():
     if "user_id" not in session:
         return redirect(url_for("login"))
+    pets = get_saved_pets(session["user_id"])
+    return render_template("saved_pets.html", pets=pets)
 
-    grp = get_group_by_name(gname=groupname)
-    if not grp:
-        return "Group not found", 404
-
-    user_id = session["user_id"]
-    follow_status = part_of_group(user_id, grp.id)
-
-    posts = get_posts_by_group(grp.id)
-
-    return render_template(
-        "group_profile.html",
-        session=session,
-        group=grp,
-        get_follow_status=follow_status,
-        posts=posts,
-    )
-
-
-@app.route("/searchgroups", methods=["GET"])
-def search_groups():
+@app.route("/adopt_pet/<int:pet_id>", methods=["POST"])
+def adopt_pet(pet_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
-    query = request.args.get("gsearch")
-    groups = []
-    if query == "*":
-        groups = Group.query.all()
-    elif query:
-        groups = Group.query.filter(Group.gname.contains(query)).all()
-    return render_template("groups.html", groups=groups, query=query)
+    adopt_pet(pet_id, session["user_id"])
+    flash("Pet adopted successfully!", "success")
+    return redirect(url_for("index"))
 
-
-@app.route("/create_group", methods=["GET", "POST"])
-def create_group():
+@app.route("/save_pet/<int:pet_id>", methods=["POST"])
+def save_pet(pet_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
-    if request.method == "POST":
-        user_id = session["user_id"]
-        description = request.form.get("description")
-        group_name = request.form.get("name")
-        checkgname = Group.query.filter(Group.gname == group_name).first()
-        if checkgname:
-            flash("Found group name already exists", "succcess")
-            return redirect(url_for("create_group"))
-        else:
-            group_type = request.form.get("type")
-            create_group_db(user_id, description, group_name, group_type)
-            flash("Group Successfully Created", "success")
-    return render_template("create_group.html")
+    save_pet_to_account(pet_id, session["user_id"])
+    flash("Pet saved to your account!", "success")
+    return redirect(url_for("view_pet", pet_id=pet_id))
 
+@app.route("/view_pet/<int:pet_id>", methods=["GET"])
+def view_pet(pet_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    pet = Pet.query.get(pet_id)
+    if not pet:
+        return "Pet not found", 404
+    user = get_user_by_id(session["user_id"])  # Retrieve the user object
+    return render_template("view_pet.html", pet=pet, user=user)  # Pass the user object
 
-def create_group_db(user_id, content, gname, gtype):
-    new_group = Group(
-        user_id=user_id,
-        content=content,
-        gname=gname,
-        gtype=gtype,
-        timestamp=datetime.utcnow(),
-    )
-    user = get_user_by_id(user_id)
-    new_group.group_followed_by.append(user)
-    db.session.add(new_group)
-    db.session.commit()
+@app.route("/remove_saved_pet/<int:pet_id>", methods=["POST"])
+def remove_saved_pet(pet_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    user = get_user_by_id(session["user_id"])
+    pet = Pet.query.get(pet_id)
+    if pet in user.saved_pets:
+        user.saved_pets.remove(pet)
+        db.session.commit()
+        flash("Pet removed from your saved list!", "success")
+    return redirect(url_for("view_pet", pet_id=pet_id))
 
+@app.context_processor
+def utility_processor():
+    return dict(get_likes=get_likes)
 
 if __name__ == "__main__":
-    # uncomment line to rebuild cloud sql db with next deployment
-    # with app.app_context():
-    #     db.drop_all()
-    #     db.create_all()
+    # uncomment line to rebuild sql db with next deployment
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
     app.run(host="0.0.0.0", port=8080)

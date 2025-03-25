@@ -7,8 +7,8 @@
     </head>
 
     <body class="auth-body">
-        
-        <h1> Blazing Adoptions </h1>
+        <img class="main-logo" src="{{ url_for('static', filename='assets/logo.png') }}" alt="Blazing Adoptions Logo" class="auth-logo">
+
         <div class="auth-container">
             <h2>Login</h2>
             <p> Welcome to Blazing Adoptions! </p>
@@ -30,7 +30,7 @@
                 <input type="submit" value="Login" />
             </form>
 
-            <p> No account? Make one at the link below!</p>
+            <p> No account? Make one at the below!</p>
             <button onclick="window.location.href='{{ url_for('register') }}'">
                 Register
             </button>
