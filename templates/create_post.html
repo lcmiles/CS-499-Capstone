@@ -9,6 +9,17 @@
     <body>
         {% include 'navbar.html' %}
         <div class="container">
+            {% include 'navbar.html' %}
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
             <p> Please enter the text and/or upload photos/videos with your post below:</p>
             <form action="{{ url_for('create_post') }}" method="post" enctype="multipart/form-data">
             <textarea class="post-input-box" placeholder="Enter your text here" name="post" type="text" required></textarea>
@@ -27,8 +38,8 @@
                 
                 <label for="pet_description">Description:</label>
                 <textarea class="pet-description-box" id="pet_description" name="pet_description" placeholder="Enter Pet Description" required></textarea>
+                <input class="post-button" type="submit" value="Post">
             </div>
-            <input class="post-button" type="submit" value="Post">
             </form>
         </div>
     </body>

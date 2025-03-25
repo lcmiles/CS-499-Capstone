@@ -164,3 +164,4 @@ node_modules/
 
 # custom ignore
 instance/database.db
+reset_db.py

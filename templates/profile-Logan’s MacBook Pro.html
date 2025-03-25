@@ -9,15 +9,6 @@
     <body>
         {% include 'navbar.html' %}
         <div class="container">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <ul class="flashes">
-                        {% for category, message in messages %}
-                            <li class="{{ category }}">{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
             <div class="profile-box">
                 <img src="{{ user.profile_picture }}" alt="Profile Picture" class="profile-picture-profile-box"/>
                 <h1>{{ user.username }}</h1>
@@ -116,7 +107,7 @@
                                     </div>
                                 {% endif %}
                                 <div class="post-content">{{ post.content }}</div>
-                                <a style="text-align: left; display: block;">Likes: {{ get_likes(post.id) }}</a>
+                                <a>Likes: {{ get_likes(post.id) }} style="</a>
                             </div>
                         </div>
                     {% endif %}

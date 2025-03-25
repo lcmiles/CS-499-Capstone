@@ -378,7 +378,6 @@ def search_pets_route():
         return redirect(url_for("login"))
     query = request.args.get("query")
     if not query:
-        flash("Please fill out this field.", "error")
         pets = Pet.query.filter_by(is_adopted=False).all()
     else:
         pets = Pet.query.filter(
