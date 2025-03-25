@@ -228,6 +228,25 @@ def get_follow_status(follower_id, followed_id):
 
     return -1
 
+def approve_follow_request(follower_id, followed_id):
+    follow_request = Follow.query.filter_by(
+        follower_id=follower_id, followed_id=followed_id
+    ).first()
+
+    follow_request.approved = 1
+
+    db.session.commit()
+
+
+def decline_follow_request(follower_id, followed_id):
+    follow_request = Follow.query.filter_by(
+        follower_id=follower_id, followed_id=followed_id
+    ).first()
+
+    db.session.delete(follow_request)
+
+    db.session.commit()
+
 
 def search_pets(name=None, breed=None):
     query = Pet.query.filter_by(is_adopted=False)
