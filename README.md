@@ -44,7 +44,6 @@ The goal of this project was to develop a web application to streamline the pet 
 
 ├── **app.py**  - *Main Flask application file, contains routes and app configuration.*  
 ├── **models.py**  - *Database models and helper functions for interacting with the database.*  
-├── **reinitialize_db.py**  - *Script to drop and recreate all database tables.*  
 ├── **.gitignore**  - *Specifies files and directories to be ignored by Git.*  
 ├── **cs-499-final-project-177edd5f02ab.json**  - *Google Cloud credentials file for accessing storage.*  
 ├── **Dockerfile**  - *Instructions for building the Docker image for the application.*  
