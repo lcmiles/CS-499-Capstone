@@ -23,7 +23,7 @@ import sqlalchemy
 
 app = Flask(__name__)
 
-LOCAL_TESTING = True  # set True if running locally
+LOCAL_TESTING = False  # set True if running locally
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "cs-499-final-project-177edd5f02ab.json"  # gcs service account json
 )
