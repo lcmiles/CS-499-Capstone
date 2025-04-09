@@ -21,7 +21,7 @@ import traceback
 
 app = Flask(__name__)
 
-LOCAL_TESTING = True  # set True if running locally
+LOCAL_TESTING = False  # set True if running locally
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "cs-499-final-project-177edd5f02ab.json"  # gcs service account json
 )
@@ -411,9 +411,14 @@ def search_pets_route():
         ).all()  # if query blank return all pets
     else:
         pets = (
-            Pet.query.filter(
+            Pet.query.filter(  # run query against all pets in db
                 (Pet.name.ilike(f"%{query}%"))
-                | (Pet.breed.ilike(f"%{query}%"))  # run query against all pets in db
+                | (Pet.breed.ilike(f"%{query}%"))
+                | (Pet.sex.ilike(f"%{query}%"))
+                | (Pet.age.ilike(f"%{query}%"))
+                | (Pet.weight.ilike(f"%{query}%"))
+                | (Pet.vaccination_status.ilike(f"%{query}%"))
+                | (Pet.description.ilike(f"%{query}%"))
             )
             .filter_by(is_adopted=False)  # not adopted
             .all()
