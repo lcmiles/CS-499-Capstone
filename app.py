@@ -18,12 +18,10 @@ from google.cloud import storage
 import google.auth
 import os
 import traceback
-from sqlalchemy import create_engine
-import sqlalchemy
 
 app = Flask(__name__)
 
-LOCAL_TESTING = False  # set True if running locally
+LOCAL_TESTING = True  # set True if running locally
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "cs-499-final-project-177edd5f02ab.json"  # gcs service account json
 )
@@ -105,8 +103,12 @@ def create_post():
         user_id = session["user_id"]
         post_content = request.form.get("post")
         pet_name = request.form.get("pet_name")
+        pet_sex = request.form.get("pet_sex")
         pet_breed = request.form.get("pet_breed")
         pet_age = request.form.get("pet_age")
+        pet_weight = request.form.get("pet_weight")
+        vaccination_status = request.form.get("vaccination_status")
+        adoption_fee = request.form.get("adoption_fee")
         pet_description = request.form.get("pet_description")
         photos = []
         videos = []
@@ -143,8 +145,12 @@ def create_post():
         if pet_name and pet_age:
             new_pet = Pet(  # create pet in database based off of post information
                 name=pet_name,
+                sex=pet_sex,
                 breed=pet_breed,
                 age=int(pet_age),
+                weight=float(pet_weight),
+                vaccination_status=vaccination_status,
+                adoption_fee=float(adoption_fee),
                 description=pet_description or "No description provided.",
                 photo=photos[0] if photos else None,
                 user_id=user_id,
