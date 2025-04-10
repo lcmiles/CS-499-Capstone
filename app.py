@@ -11,15 +11,12 @@ from flask import (
 from flask_cors import CORS
 from models import *
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 import pytz
 import secrets
 from google.cloud import storage
 import google.auth
 import os
 import traceback
-from sqlalchemy import create_engine
-import sqlalchemy
 
 app = Flask(__name__)
 
@@ -105,8 +102,12 @@ def create_post():
         user_id = session["user_id"]
         post_content = request.form.get("post")
         pet_name = request.form.get("pet_name")
+        pet_sex = request.form.get("pet_sex")
         pet_breed = request.form.get("pet_breed")
         pet_age = request.form.get("pet_age")
+        pet_weight = request.form.get("pet_weight")
+        vaccination_status = request.form.get("vaccination_status")
+        adoption_fee = request.form.get("adoption_fee")
         pet_description = request.form.get("pet_description")
         photos = []
         videos = []
@@ -143,8 +144,12 @@ def create_post():
         if pet_name and pet_age:
             new_pet = Pet(  # create pet in database based off of post information
                 name=pet_name,
+                sex=pet_sex,
                 breed=pet_breed,
                 age=int(pet_age),
+                weight=float(pet_weight),
+                vaccination_status=vaccination_status,
+                adoption_fee=float(adoption_fee),
                 description=pet_description or "No description provided.",
                 photo=photos[0] if photos else None,
                 user_id=user_id,
@@ -341,12 +346,13 @@ def post_page(post_id):
     post = get_post_by_id(post_id).first()
     if not post:
         return "Post not found", 404
+    pet = Pet.query.filter_by(photo=post.photos[0]).first() if post.photos else None
     comments = get_comments(post_id)  # load comments
     likes = get_likes(post_id)  # load likes
     central = pytz.timezone("US/Central")
     post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
     return render_template(
-        "post_page.html", post=post, comments=comments, user=user, likes=likes
+        "post_page.html", post=post, comments=comments, user=user, likes=likes, pet=pet
     )
 
 
@@ -405,9 +411,14 @@ def search_pets_route():
         ).all()  # if query blank return all pets
     else:
         pets = (
-            Pet.query.filter(
+            Pet.query.filter(  # run query against all pets in db
                 (Pet.name.ilike(f"%{query}%"))
-                | (Pet.breed.ilike(f"%{query}%"))  # run query against all pets in db
+                | (Pet.breed.ilike(f"%{query}%"))
+                | (Pet.sex.ilike(f"%{query}%"))
+                | (Pet.age.ilike(f"%{query}%"))
+                | (Pet.weight.ilike(f"%{query}%"))
+                | (Pet.vaccination_status.ilike(f"%{query}%"))
+                | (Pet.description.ilike(f"%{query}%"))
             )
             .filter_by(is_adopted=False)  # not adopted
             .all()
@@ -468,7 +479,7 @@ def remove_saved_pet(pet_id):
     if pet in user.saved_pets:  # if pet in saved pets
         user.saved_pets.remove(pet)  # remove pet from saved pets
         db.session.commit()  # commit changes to db
-        flash("Pet removed from your saved list!", "success")
+        flash("Pet removed from your saved list", "success")
     return redirect(url_for("view_pet", pet_id=pet_id))
 
 

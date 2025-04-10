@@ -19,7 +19,11 @@
             <h1>{{ pet.name }}</h1>
             <img src="{{ pet.photo }}" alt="Pet Photo" class="pet-photo">
             <p><strong>Breed:</strong> {{ pet.breed }}</p>
+            <p><strong>Sex:</strong> {{ pet.sex }}</p>
             <p><strong>Age:</strong> {{ pet.age }} years old</p>
+            <p><strong>Weight:</strong> {{ pet.weight }} lbs</p>
+            <p><strong>Vaccination Status:</strong> {{ pet.vaccination_status }}</p>
+            <p><strong>Adoption Fee:</strong> ${{ pet.adoption_fee }}</p>
             <p><strong>Description:</strong> {{ pet.description }}</p>
             {% if not pet.is_adopted %}
                 <form action="{{ url_for('adopt_pet', pet_id=pet.id) }}" method="post" style="display: inline;">

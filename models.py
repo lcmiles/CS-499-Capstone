@@ -90,8 +90,12 @@ class Follow(db.Model):
 class Pet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
-    breed = db.Column(db.String(50), nullable=True)
+    sex = db.Column(db.String(50), nullable=False)
+    breed = db.Column(db.String(50), nullable=False)
     age = db.Column(db.Integer, nullable=False)
+    weight = db.Column(db.Float, nullable=False)
+    vaccination_status = db.Column(db.String(50), nullable=False)
+    adoption_fee = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text, nullable=False)
     photo = db.Column(db.String(120), nullable=True)
     is_adopted = db.Column(db.Boolean, default=False)
