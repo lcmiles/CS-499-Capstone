@@ -11,7 +11,6 @@ from flask import (
 from flask_cors import CORS
 from models import *
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 import pytz
 import secrets
 from google.cloud import storage
@@ -347,12 +346,13 @@ def post_page(post_id):
     post = get_post_by_id(post_id).first()
     if not post:
         return "Post not found", 404
+    pet = Pet.query.filter_by(photo=post.photos[0]).first() if post.photos else None
     comments = get_comments(post_id)  # load comments
     likes = get_likes(post_id)  # load likes
     central = pytz.timezone("US/Central")
     post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
     return render_template(
-        "post_page.html", post=post, comments=comments, user=user, likes=likes
+        "post_page.html", post=post, comments=comments, user=user, likes=likes, pet=pet
     )
 
 
@@ -479,7 +479,7 @@ def remove_saved_pet(pet_id):
     if pet in user.saved_pets:  # if pet in saved pets
         user.saved_pets.remove(pet)  # remove pet from saved pets
         db.session.commit()  # commit changes to db
-        flash("Pet removed from your saved list!", "success")
+        flash("Pet removed from your saved list", "success")
     return redirect(url_for("view_pet", pet_id=pet_id))
 
 
