@@ -17,20 +17,31 @@ from google.cloud import storage
 import google.auth
 import os
 import traceback
+import base64
 
 app = Flask(__name__)
 
 LOCAL_TESTING = False  # set True if running locally
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
+LOCAL_DB = False  # set True if using local database
+
+if LOCAL_TESTING:
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "cs-499-final-project-177edd5f02ab.json"  # gcs service account json
 )
+else:
+    encoded_credentials = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    if encoded_credentials:
+        decoded_credentials = base64.b64decode(encoded_credentials).decode("utf-8")
+        with open("/tmp/service_account.json", "w") as f:
+            f.write(decoded_credentials)
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/service_account.json"
 
 DB_HOST = "logansserver1511.duckdns.org"  # logan's linux server dns used for sql server
 DB_USER = "cs499user"
 DB_PASS = "cs499password"
 DB_NAME = "cs499_capstone_db"
 
-if LOCAL_TESTING:
+if LOCAL_DB:
     app.config["SQLALCHEMY_DATABASE_URI"] = (
         "sqlite:///database.db"  # uri for local database
     )
