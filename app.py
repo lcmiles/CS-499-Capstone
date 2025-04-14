@@ -21,8 +21,8 @@ import base64
 
 app = Flask(__name__)
 
-LOCAL_TESTING = True  # set True if running locally
-LOCAL_DB = True  # set True if using local database
+LOCAL_TESTING = False  # set True if running locally
+LOCAL_DB = False  # set True if using local database
 
 if LOCAL_TESTING:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
