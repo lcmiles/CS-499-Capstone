@@ -468,7 +468,7 @@ def save_pet(pet_id):
         pet_id, session["user_id"]
     )  # function to save pet to account in db
     flash("Pet saved to your account!", "success")
-    return redirect(url_for("view_pet", pet_id=pet_id))
+    return redirect(url_for("index", pet_id=pet_id))
 
 
 # routing to load pet page
