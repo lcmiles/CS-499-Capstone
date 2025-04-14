@@ -103,6 +103,33 @@ class Pet(db.Model):
     user = db.relationship("User", backref=db.backref("adopted_pets", lazy=True))
 
 
+class Adoption_Info(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    adopter_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    pet_id = db.Column(db.Integer, db.ForeignKey("pet.id"), nullable=False)
+    full_name = db.Column(db.String(100), nullable=False)
+    address = db.Column(db.Text, nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    reason_for_adopting = db.Column(db.Text, nullable=False)
+    home_type = db.Column(db.String(50), nullable=False)
+    children_info = db.Column(db.Text, nullable=True)
+    first_time_owner = db.Column(db.Boolean, nullable=False)
+    other_pets_info = db.Column(db.Text, nullable=True)
+    home_visit_agreement = db.Column(db.Boolean, nullable=False)
+    fee_agreement = db.Column(db.Boolean, nullable=False)
+    return_agreement = db.Column(db.Boolean, nullable=False)
+    signature = db.Column(db.String(100), nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default="Pending")  # Pending, Approved, Denied
+
+    adopter = db.relationship("User", foreign_keys=[adopter_id])
+    owner = db.relationship("User", foreign_keys=[owner_id])
+    pet = db.relationship("Pet", backref=db.backref("adoption_applications", lazy=True))
+
+
 # function to create user in table
 def create_user(email, username, password):
     new_user = User(email=email, username=username, password=password)
@@ -280,7 +307,7 @@ def search_pets(name=None, breed=None):
 
 
 # function to set adoption status in table
-def adopt_pet(pet_id, user_id):
+def mark_pet_as_adopted(pet_id, user_id):
     pet = Pet.query.get(pet_id)
     pet.is_adopted = True
     pet.user_id = user_id
@@ -302,6 +329,11 @@ def get_saved_pets(user_id):
     return user.saved_pets.all()
 
 
+# function to get adoption application notifications for a user
+def get_adoption_notifications(user_id):
+    return Adoption_Info.query.filter_by(owner_id=user_id, status="Pending").all()
+
+
 # function to initialize tables
 def init_db():
     db.create_all()
@@ -315,3 +347,23 @@ def __repr__(self):
 # helper function  for post timestamps
 def __repr__(self):
     return f"Post('{self.content}', '{self.timestamp}')"
+
+
+# Helper functions
+def create_adoption_application(data):
+    application = Adoption_Info(**data)
+    db.session.add(application)
+    db.session.commit()
+
+
+def get_adoption_applications(owner_id):
+    return Adoption_Info.query.filter_by(owner_id=owner_id).all()
+
+
+def update_adoption_status(application_id, status):
+    application = Adoption_Info.query.get(application_id)
+    application.status = status
+    if status == "Approved":
+        pet = Pet.query.get(application.pet_id)
+        pet.is_adopted = True
+    db.session.commit()

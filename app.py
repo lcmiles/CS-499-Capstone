@@ -89,19 +89,19 @@ def upload_to_gcs(file, bucket_name, folder):
 # route to load home page (index.html)
 @app.route("/", methods=["GET", "POST"])
 def index():
-    if (
-        "user_id" not in session
-    ):  # redirect for login if user not in session or not found
+    if "user_id" not in session:
         return redirect(url_for("login"))
     if not User.query.first():
         return redirect(url_for("login"))
-    user = get_user_by_id(session["user_id"])  # set session to logged in user id
-    posts = get_posts(current_user_id=session["user_id"])  # load posts from db
-    notifs = get_follow_requests(user.id)  # get follow requests for user
+    user = get_user_by_id(session["user_id"])
+    posts = get_posts(current_user_id=session["user_id"])
+
     central = pytz.timezone("US/Central")
-    for post in posts:  # format timestamps in posts
+    for post in posts:
         post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
-    return render_template("index.html", posts=posts, user=user, notifs=notifs)
+    return render_template(
+        "index.html", posts=posts, user=user
+    )
 
 
 # route to load create_post.html
@@ -109,6 +109,8 @@ def index():
 def create_post():
     if "user_id" not in session:
         return redirect(url_for("login"))
+    current_user_id = session["user_id"]
+
     if request.method == "POST":
         user_id = session["user_id"]
         post_content = request.form.get("post")
@@ -269,7 +271,8 @@ def view_profile(username):
     user = get_user_by_username(username)  # get user
     if not user:
         return "User not found", 404
-    notifs = get_follow_requests(session["user_id"])
+    current_user_id = session["user_id"]
+
     user_posts = get_posts(user_id=user.id)  # get user posts
     central = pytz.timezone("US/Central")
     for post in user_posts:  # format post timestamps
@@ -279,7 +282,6 @@ def view_profile(username):
         session=session,
         user=user,
         get_follow_status=get_follow_status,
-        notifs=notifs,
         posts=user_posts,
     )
 
@@ -385,15 +387,14 @@ def server_like(post_id):
 
 
 # routing to search users in db
-@app.route("/search", methods=["GET"])
+@app.route("/search_users", methods=["GET"])
 def search_users():
-    query = request.args.get("query")  # get query from html form
-    if query:
-        users = User.query.filter(
-            User.username.ilike(f"%{query}%")
-        ).all()  # run query on db
-    else:
-        users = User.query.all()  # return all users if query blank
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    current_user_id = session["user_id"]
+
+    query = request.args.get("query")
+    users = User.query.filter(User.username.ilike(f"%{query}%")).all() if query else User.query.all()
     return render_template("search.html", users=users, query=query)
 
 
@@ -415,6 +416,8 @@ def internal_error(error):
 def search_pets_route():
     if "user_id" not in session:
         return redirect(url_for("login"))
+    current_user_id = session["user_id"]
+
     query = request.args.get("query")
     if not query:
         pets = Pet.query.filter_by(
@@ -442,18 +445,18 @@ def search_pets_route():
 def saved_pets():
     if "user_id" not in session:
         return redirect(url_for("login"))
-    pets = get_saved_pets(session["user_id"])  # get saved pets for user id
+    current_user_id = session["user_id"]
+
+    pets = get_saved_pets(current_user_id)  # get saved pets for user id
     return render_template("saved_pets.html", pets=pets)
 
 
-# routing to handle adopt pet (incomplete)
+# routing to handle adopt pet
 @app.route("/adopt_pet/<int:pet_id>", methods=["POST"])
 def adopt_pet(pet_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
-    adopt_pet(pet_id, session["user_id"])
-    flash("Pet adopted successfully!", "success")
-    return redirect(url_for("index"))
+    return redirect(url_for("adopt_pet_application", pet_id=pet_id)) # redirect to application page
 
 
 # routing to save pets to account
@@ -499,6 +502,75 @@ def remove_saved_pet(pet_id):
 def utility_processor():
     return dict(get_likes=get_likes)
 
+
+# routing to handle adoption application
+@app.route("/adopt_pet_application/<int:pet_id>", methods=["GET", "POST"])
+def adopt_pet_application(pet_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    pet = Pet.query.get(pet_id)
+    if not pet or pet.is_adopted:
+        return "Pet not available for adoption", 404
+    if request.method == "POST":
+        data = {
+            "adopter_id": session["user_id"],
+            "owner_id": pet.user_id,
+            "pet_id": pet_id,
+            "full_name": request.form.get("full_name"),
+            "address": request.form.get("address"),
+            "email": request.form.get("email"),
+            "phone": request.form.get("phone"),
+            "age": int(request.form.get("age")),
+            "reason_for_adopting": request.form.get("reason_for_adopting"),
+            "home_type": request.form.get("home_type"),
+            "children_info": request.form.get("children_info"),
+            "first_time_owner": request.form.get("first_time_owner") == "on",
+            "other_pets_info": request.form.get("other_pets_info"),
+            "home_visit_agreement": request.form.get("home_visit_agreement") == "on",
+            "fee_agreement": request.form.get("fee_agreement") == "on",
+            "return_agreement": request.form.get("return_agreement") == "on",
+            "signature": request.form.get("signature"),
+        }
+        create_adoption_application(data)
+        flash("Adoption application submitted successfully!", "success")
+        return redirect(url_for("index"))
+    return render_template("adopt_pet_application.html", pet=pet)
+
+
+# routing to handle viewing adoption applications
+@app.route("/view_adoption_applications", methods=["GET"])
+def view_adoption_applications():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    current_user_id = session["user_id"]
+    applications = get_adoption_applications(current_user_id)
+
+    return render_template("view_adoption_applications.html", applications=applications)
+
+
+# routing to handle updating adoption status
+@app.route("/update_adoption_status/<int:application_id>/<string:status>", methods=["POST"])
+def update_adoption_status_route(application_id, status):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    update_adoption_status(application_id, status)
+    flash(f"Application {status} successfully!", "success")
+    return redirect(url_for("index"))
+
+
+# routing to handle follow requests and adoption application notifications globally for users
+@app.context_processor
+def inject_notifications():
+    if "user_id" in session:
+        current_user_id = session["user_id"]
+        follow_requests = get_follow_requests(current_user_id)
+        adoption_applications = get_adoption_notifications(current_user_id)
+        notifications = {
+            "follow_requests": follow_requests,
+            "adoption_applications": adoption_applications,
+        }
+        return {"notifications": notifications}
+    return {"notifications": {"follow_requests": [], "adoption_applications": []}}
 
 if __name__ == "__main__":
     # uncomment line to rebuild sql db with next deployment
