@@ -25,22 +25,30 @@
         </div>
 
         <div class="notifs">
-            <button class="dropbtn"> Notifications ({{ notifs|length }}) &#9662;</button>
+            <button class="dropbtn">Notifications ({{ notifications.follow_requests|length + notifications.adoption_applications|length }}) &#9662;</button>
             <div class="notifs-content dropdown-content">
-                {% if notifs %}
-                {% for notif in notifs %}
-                <div>
-                    Follow request from {{ notif.follower.username }}
-                    <form action="{{ url_for('follow', user=notif.follower.id, action='approve') }}" method="post">
-                        <button type="submit" class="dropdown-link">Approve</button>
-                    </form>
-                    <form action="{{ url_for('follow', user=notif.follower.id, action='decline') }}" method="post">
-                        <button type="submit" class="dropdown-link">Decline</button>
-                    </form>
-                </div>
-                {% endfor %}
+                {% if notifications.follow_requests or notifications.adoption_applications %}
+                    {% for notif in notifications.follow_requests %}
+                        <div>
+                            Follow request from {{ notif.follower.username }}
+                            <form action="{{ url_for('follow', user=notif.follower.id, action='approve') }}" method="post">
+                                <button type="submit" class="dropdown-link">Approve</button>
+                            </form>
+                            <form action="{{ url_for('follow', user=notif.follower.id, action='decline') }}" method="post">
+                                <button type="submit" class="dropdown-link">Decline</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                    {% for notif in notifications.adoption_applications %}
+                        <div>
+                            Application for {{ notif.pet.name }} by {{ notif.adopter.username }}
+                            <form action="{{ url_for('view_adoption_applications') }}" method="get">
+                                <button type="submit" class="dropdown-link">View</button>
+                            </form>
+                        </div>
+                    {% endfor %}
                 {% else %}
-                <p>No notifications</p>
+                    <p>No notifications</p>
                 {% endif %}
             </div>
         </div>

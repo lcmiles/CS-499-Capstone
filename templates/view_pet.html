@@ -25,21 +25,22 @@
             <p><strong>Vaccination Status:</strong> {{ pet.vaccination_status }}</p>
             <p><strong>Adoption Fee:</strong> ${{ pet.adoption_fee }}</p>
             <p><strong>Description:</strong> {{ pet.description }}</p>
-            {% if not pet.is_adopted %}
-                <form action="{{ url_for('adopt_pet', pet_id=pet.id) }}" method="post" style="display: inline;">
-                    <button type="submit" class="adopt-button">Adopt</button>
-                </form>
-                {% if pet in user.saved_pets %}
-                    <form action="{{ url_for('remove_saved_pet', pet_id=pet.id) }}" method="post" style="display: inline;">
-                        <button type="submit" class="remove-save-button">Remove Save</button>
-                    </form>
-                {% else %}
-                    <form action="{{ url_for('save_pet', pet_id=pet.id) }}" method="post" style="display: inline;">
-                        <button type="submit" class="save-button">Save</button>
-                    </form>
-                {% endif %}
-            {% else %}
-                <p>This pet has already been adopted.</p>
+            <form action="{{ url_for('adopt_pet', pet_id=pet.id) }}" method="post" style="display: inline;">
+                <button type="submit" class="adopt-button" 
+                        {% if pet.user_id == user.id or pet.is_adopted %}disabled{% endif %}>
+                    Adopt
+                </button>
+            </form>
+            <form action="{{ url_for('save_pet', pet_id=pet.id) }}" method="post" style="display: inline;">
+                <button type="submit" class="save-button" 
+                        {% if pet.user_id == user.id or pet.is_adopted %}disabled{% endif %}>
+                    Save
+                </button>
+            </form>
+            {% if pet.user_id == user.id %}
+                <p class="disabled-reason">You cannot adopt your own pet.</p>
+            {% elif pet.is_adopted %}
+                <p class="disabled-reason">This pet has already been adopted.</p>
             {% endif %}
         </div>
     </body>

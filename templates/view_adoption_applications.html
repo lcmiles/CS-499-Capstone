@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Adoption Applications</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h2>Adoption Applications</h2>
+        {% if applications %}
+            {% for application in applications %}
+                <div class="application">
+                    <p><strong>Adopter Name:</strong> {{ application.full_name }}</p>
+                    <p><strong>Address:</strong> {{ application.address }}</p>
+                    <p><strong>Email:</strong> {{ application.email }}</p>
+                    <p><strong>Phone:</strong> {{ application.phone }}</p>
+                    <p><strong>Age:</strong> {{ application.age }}</p>
+                    <p><strong>Reason for Adopting:</strong> {{ application.reason_for_adopting }}</p>
+                    <p><strong>Type of Home:</strong> {{ application.home_type }}</p>
+                    <p><strong>Children Info:</strong> {{ application.children_info or "N/A" }}</p>
+                    <p><strong>First Time Pet Owner:</strong> {{ "Yes" if application.first_time_owner else "No" }}</p>
+                    <p><strong>Other Pets Info:</strong> {{ application.other_pets_info or "N/A" }}</p>
+                    <p><strong>Home Visit Agreement:</strong> {{ "Yes" if application.home_visit_agreement else "No" }}</p>
+                    <p><strong>Fee Agreement:</strong> {{ "Yes" if application.fee_agreement else "No" }}</p>
+                    <p><strong>Return Agreement:</strong> {{ "Yes" if application.return_agreement else "No" }}</p>
+                    <p><strong>Signature:</strong> {{ application.signature }}</p>
+                    <p><strong>Date Submitted:</strong> {{ application.date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    <p><strong>Status:</strong> {{ application.status }}</p>
+                    <div class="button-group">
+                        <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Approved') }}" method="post" style="display: inline;">
+                            <button type="submit" class="dropdown-link">Approve</button>
+                        </form>
+                        <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Denied') }}" method="post" style="display: inline;">
+                            <button type="submit" class="dropdown-link">Deny</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No adoption applications found.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

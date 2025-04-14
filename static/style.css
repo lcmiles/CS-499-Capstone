@@ -459,6 +459,9 @@ h1 {
 }
 button:disabled {
     cursor: not-allowed;
+    background-color: #d3d3d3;
+    color: #a9a9a9;
+    border: 1px solid #d3d3d3;
 }
 .comment-header {
     display: flex;
@@ -753,4 +756,88 @@ h4 {
 
 .adopt-button:hover, .save-button:hover, .remove-save-button:hover {
     background-color: #2980b9;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    background-color: #d3d3d3;
+    color: #a9a9a9;
+    border: 1px solid #d3d3d3;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-row label {
+    font-weight: bold;
+}
+
+.form-row input[type="text"],
+.form-row input[type="email"],
+.form-row input[type="number"],
+.form-row textarea,
+.form-row select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.form-row input[type="checkbox"] {
+    width: auto;
+}
+
+.form-row input[type="submit"] {
+    padding: 10px 20px;
+    background-color: #1e8449;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    align-self: flex-start;
+}
+
+.form-row input[type="submit"]:hover {
+    background-color: #145a32;
+}
+
+.dropdown-link {
+    padding: 8px 15px;
+    background-color: #1e8449;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    display: inline-block;
+    margin: 5px 0;
+}
+
+.dropdown-link:hover {
+    background-color: #145a32;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.disabled-reason {
+    font-size: 14px;
+    color: #888;
+    margin-top: 5px;
 }
