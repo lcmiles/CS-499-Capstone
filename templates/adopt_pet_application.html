@@ -3,6 +3,12 @@
 <head>
     <title>Adoption Application</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function disableSubmitButton(button) {
+            button.disabled = true;
+            button.form.submit();
+        }
+    </script>
 </head>
 <body>
     {% include 'navbar.html' %}
@@ -69,7 +75,7 @@
                 <input type="text" id="signature" name="signature" required>
             </div>
             <div class="form-row">
-                <input type="submit" value="Submit Application">
+                <input type="submit" value="Submit Application" onclick="disableSubmitButton(this)">
             </div>
         </form>
     </div>
