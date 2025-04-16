@@ -18,12 +18,13 @@ body {
     border-radius: 10px;
     margin-top: 150px;
 }
+
 .navbar {
-    width: 100%;
-    background-color: #2ecc71;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    background-color: #2ecc71;
     padding: 10px 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     position: fixed;
@@ -31,8 +32,12 @@ body {
     z-index: 1000;
 }
 .navbar-logo {
-    height: 50px; /* Adjust the height to fit the navbar */
+    height: 50px;
     object-fit: contain;
+}
+.navbar-logo:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
 }
 .main-logo{
     margin-bottom: 30px;
@@ -40,6 +45,17 @@ body {
 .left-navbar {
     display: flex;
     align-items: center;
+    margin-left: 30px;
+}
+.center-navbar {
+    display: flex;
+    justify-content: center;
+    flex-grow: 1;
+}
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 .right-navbar {
     display: flex;
@@ -56,7 +72,6 @@ body {
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s;
-    margin-left: 15px;
 }
 .home-btn:hover, .create-post-btn:hover {
     background-color: #27ae60;
