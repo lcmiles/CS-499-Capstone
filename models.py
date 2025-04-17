@@ -43,6 +43,7 @@ class User(db.Model):
     )
 
 
+
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -169,6 +170,7 @@ def get_post_by_id(post_id):
 
 
 def add_comment(post_id, user_id, content):
+   
     new_comment = Comment(post_id=post_id, user_id=user_id, content=content)
 
     db.session.add(new_comment)
@@ -181,6 +183,7 @@ def get_comments(post_id):
 
 
 def like_post(post_id, user_id):
+    
     existing_like = Like.query.filter_by(post_id=post_id, user_id=user_id).first()
 
     if existing_like:
@@ -259,9 +262,10 @@ def search_pets(name=None, breed=None):
 
 def adopt_pet(pet_id, user_id):
     pet = Pet.query.get(pet_id)
-    pet.is_adopted = True
-    pet.user_id = user_id
-    db.session.commit()
+    if pet and not pet.is_adopted:
+        pet.is_adopted = True
+        pet.user_id = user_id
+        db.session.commit()
 
 
 def save_pet_to_account(pet_id, user_id):

@@ -120,7 +120,10 @@ def index():
 @app.route("/create_post", methods=["GET", "POST"])
 def create_post():
     if "user_id" not in session:
-        return redirect(url_for("login"))
+
+        flash("You must be logged in to create posts","error")
+        return redirect(url_for("index"))
+    
     if request.method == "POST":
         user_id = session["user_id"]
         post_content = request.form.get("post")
@@ -265,7 +268,10 @@ def view_profile(username):
 @app.route("/edit_profile", methods=["GET", "POST"])
 def edit_profile():
     if "user_id" not in session:
-        return redirect(url_for("login"))
+
+        flash ("You must be logged into an account to edit profile.","error")
+        return redirect(url_for("index"))
+    
     user = get_user_by_id(session["user_id"])
     if request.method == "POST":
         bio = request.form.get("bio")
@@ -291,8 +297,11 @@ def edit_profile():
 
 @app.route("/follow", methods=["POST"])
 def follow():
+
     if "user_id" not in session:
-        return redirect(url_for("login"))
+        flash ("You must be logged into an account to follow posts.", "error")
+        return redirect(url_for("index"))
+    
     user = get_user_by_id(session["user_id"])
     followed_id = request.args.get("user")
     followed_user = get_user_by_id(followed_id)
@@ -317,7 +326,9 @@ def follow():
 @app.route("/post/<post_id>", methods=["GET", "POST"])
 def post_page(post_id):
     if "user_id" not in session:
+
         return redirect(url_for("login"))
+        
     user = get_user_by_id(session["user_id"])
     if request.method == "POST":
         user_id = session["user_id"]
@@ -339,7 +350,7 @@ def post_page(post_id):
 def server_like(post_id):
 
     if "user_id" not in session:
-        return redirect(url_for("login"))
+        return redirect(url_for("index"))
     user = get_user_by_id(session["user_id"])
 
     if request.method == "POST":
@@ -374,8 +385,10 @@ def internal_error(error):
 
 @app.route("/search_pets", methods=["GET"])
 def search_pets_route():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
+    
+   # if "user_id" not in session:   this now allows for anyone to search for pets
+    #return redirect(url_for("login"))
+    
     query = request.args.get("query")
     if not query:
         pets = Pet.query.filter_by(is_adopted=False).all()
@@ -388,30 +401,41 @@ def search_pets_route():
 @app.route("/saved_pets", methods=["GET"])
 def saved_pets():
     if "user_id" not in session:
-        return redirect(url_for("login"))
+
+        flash ("you must be logged into an account to save a pet.","error")
+        return redirect(url_for("index"))
+    
     pets = get_saved_pets(session["user_id"])
     return render_template("saved_pets.html", pets=pets)
 
 @app.route("/adopt_pet/<int:pet_id>", methods=["POST"])
 def adopt_pet(pet_id):
+
     if "user_id" not in session:
-        return redirect(url_for("login"))
+        flash("you must be logged into an account to adopt a pet.", "error")
+        return redirect(url_for("index"))
+    
     adopt_pet(pet_id, session["user_id"])
     flash("Pet adopted successfully!", "success")
     return redirect(url_for("index"))
 
 @app.route("/save_pet/<int:pet_id>", methods=["POST"])
 def save_pet(pet_id):
+
     if "user_id" not in session:
-        return redirect(url_for("login"))
+        flash("you must be logged in to save a pets info.", "error")
+        return redirect(url_for("index"))
+    
     save_pet_to_account(pet_id, session["user_id"])
     flash("Pet saved to your account!", "success")
     return redirect(url_for("view_pet", pet_id=pet_id))
 
 @app.route("/view_pet/<int:pet_id>", methods=["GET"])
 def view_pet(pet_id):
-    if "user_id" not in session:
-        return redirect(url_for("login"))
+
+    #if "user_id" not in session:  grey these out so guests can now view pets
+      #return redirect(url_for("login"))
+    
     pet = Pet.query.get(pet_id)
     if not pet:
         return "Pet not found", 404
@@ -420,8 +444,12 @@ def view_pet(pet_id):
 
 @app.route("/remove_saved_pet/<int:pet_id>", methods=["POST"])
 def remove_saved_pet(pet_id):
+
     if "user_id" not in session:
-        return redirect(url_for("login"))
+
+        flash ("you must be logged into an account")
+        return redirect(url_for("index"))
+    
     user = get_user_by_id(session["user_id"])
     pet = Pet.query.get(pet_id)
     if pet in user.saved_pets:
