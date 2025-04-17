@@ -21,7 +21,7 @@ import base64
 
 app = Flask(__name__)
 
-LOCAL_TESTING = False  # set True if running locally
+LOCAL_TESTING = True  # set True if running locally
 LOCAL_DB = False  # set True if using local database
 
 if LOCAL_TESTING:
@@ -36,7 +36,7 @@ else:
             f.write(decoded_credentials)
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/service_account.json"
 
-DB_HOST = "logansserver1511.duckdns.org"  # logan's linux server dns used for sql server
+DB_HOST = "100.113.76.11"  # logan's linux server dns used for sql server
 DB_USER = "cs499user"
 DB_PASS = "cs499password"
 DB_NAME = "cs499_capstone_db"
@@ -89,19 +89,21 @@ def upload_to_gcs(file, bucket_name, folder):
 # route to load home page (index.html)
 @app.route("/", methods=["GET", "POST"])
 def index():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
     if not User.query.first():
         return redirect(url_for("login"))
-    user = get_user_by_id(session["user_id"])
-    posts = get_posts(current_user_id=session["user_id"])
+    
+    user = None
+    posts = get_posts()  # fetch public posts by default
+    
+    if "user_id" in session:
+        user = get_user_by_id(session["user_id"])
+        posts = get_posts(current_user_id=session["user_id"])  # fetch posts for logged-in users
 
     central = pytz.timezone("US/Central")
     for post in posts:
         post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
-    return render_template(
-        "index.html", posts=posts, user=user
-    )
+    
+    return render_template("index.html", posts=posts, user=user)
 
 
 # route to load create_post.html
@@ -110,7 +112,7 @@ def create_post():
     if "user_id" not in session:
 
         flash("You must be logged in to create posts","error")
-        return redirect(url_for("index"))
+        return redirect(url_for("login"))
     
     if request.method == "POST":
         user_id = session["user_id"]
@@ -269,19 +271,24 @@ def logout():
 # routing for a given user's profile page
 @app.route("/profile/<username>", methods=["GET"])
 def view_profile(username):
-    user = get_user_by_username(username)  # get user
+    user = get_user_by_username(username)  # Get the profile user
     if not user:
         return "User not found", 404
-    current_user_id = session["user_id"]
 
-    user_posts = get_posts(user_id=user.id)  # get user posts
+    current_user_id = None
+    if "user_id" in session:
+        current_user_id = session["user_id"]
+
+    user_posts = get_posts(user_id=user.id)  # Get the profile user's posts
     central = pytz.timezone("US/Central")
-    for post in user_posts:  # format post timestamps
+    for post in user_posts:  # Format post timestamps
         post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
+
     return render_template(
         "profile.html",
         session=session,
         user=user,
+        current_user_id=current_user_id,
         get_follow_status=get_follow_status,
         posts=user_posts,
     )
@@ -293,7 +300,7 @@ def edit_profile():
     if "user_id" not in session:
 
         flash ("You must be logged into an account to edit profile.","error")
-        return redirect(url_for("index"))
+        return redirect(url_for("login"))
     
     user = get_user_by_id(session["user_id"])
     if request.method == "POST":
@@ -327,8 +334,8 @@ def edit_profile():
 def follow():
 
     if "user_id" not in session:
-        flash ("You must be logged into an account to follow posts.", "error")
-        return redirect(url_for("index"))
+        flash ("You must be logged into an account to follow users.", "error")
+        return redirect(url_for("login"))
     
     user = get_user_by_id(session["user_id"])
     followed_id = request.args.get("user")
@@ -354,28 +361,31 @@ def follow():
 # routing to load page for a given post
 @app.route("/post/<post_id>", methods=["GET", "POST"])
 def post_page(post_id):
-    if "user_id" not in session:
-
-        return redirect(url_for("login"))
-        
-    user = get_user_by_id(session["user_id"])
-    if request.method == "POST":
-        user_id = session["user_id"]
-        comment = request.form.get("comment")
-        add_comment(
-            post_id, user_id, comment
-        )  # function to add comment to a post in db
-    post = get_post_by_id(post_id).first()
+    user = None
+    if "user_id" in session:
+        user = get_user_by_id(session["user_id"])
+    
+    post = get_post_by_id(post_id).first()  # Ensure post is always initialized
     if not post:
         return "Post not found", 404
+
+    if request.method == "POST":
+        if "user_id" not in session:
+            flash("You must be logged into an account to comment on posts.", "error")
+            return redirect(url_for("login"))
+        
+        user_id = session["user_id"]
+        comment = request.form.get("comment")
+        add_comment(post_id, user_id, comment)  # Add comment to the post in the database
+
     pet = Pet.query.filter_by(photo=post.photos[0]).first() if post.photos else None
-    comments = get_comments(post_id)  # load comments
-    likes = get_likes(post_id)  # load likes
+    comments = get_comments(post_id)  # Load comments
+    likes = get_likes(post_id)  # Load likes
+
     central = pytz.timezone("US/Central")
     post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
-    return render_template(
-        "post_page.html", post=post, comments=comments, user=user, likes=likes, pet=pet
-    )
+
+    return render_template("post_page.html", post=post, comments=comments, user=user, likes=likes, pet=pet)
 
 
 # routing to like posts
@@ -383,7 +393,8 @@ def post_page(post_id):
 def server_like(post_id):
 
     if "user_id" not in session:
-        return redirect(url_for("index"))
+        flash ("You must be logged into an account to like posts.", "error")
+        return redirect(url_for("login"))
     user = get_user_by_id(session["user_id"])
 
     if request.method == "POST":
@@ -398,9 +409,6 @@ def server_like(post_id):
 # routing to search users in db
 @app.route("/search_users", methods=["GET"])
 def search_users():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-    current_user_id = session["user_id"]
 
     query = request.args.get("query")
     users = User.query.filter(User.username.ilike(f"%{query}%")).all() if query else User.query.all()
@@ -455,7 +463,7 @@ def saved_pets():
     if "user_id" not in session:
 
         flash ("you must be logged into an account to save a pet.","error")
-        return redirect(url_for("index"))
+        return redirect(url_for("login"))
     
     pets = get_saved_pets(session["user_id"])
     return render_template("saved_pets.html", pets=pets)
@@ -464,14 +472,9 @@ def saved_pets():
 # routing to handle adopt pet
 @app.route("/adopt_pet/<int:pet_id>", methods=["POST"])
 def adopt_pet(pet_id):
-
     if "user_id" not in session:
-        flash("you must be logged into an account to adopt a pet.", "error")
-        return redirect(url_for("index"))
-    
-    adopt_pet(pet_id, session["user_id"])
-    flash("Pet adopted successfully!", "success")
-    return redirect(url_for("index"))
+        return redirect(url_for("login"))
+    return redirect(url_for("adopt_pet_application", pet_id=pet_id)) # redirect to application page
 
 # routing to save pets to account
 @app.route("/save_pet/<int:pet_id>", methods=["POST"])
@@ -479,7 +482,7 @@ def save_pet(pet_id):
 
     if "user_id" not in session:
         flash("you must be logged in to save a pets info.", "error")
-        return redirect(url_for("index"))
+        return redirect(url_for("login"))
     
     save_pet_to_account(pet_id, session["user_id"])
     flash("Pet saved to your account!", "success")
@@ -489,14 +492,14 @@ def save_pet(pet_id):
 # routing to load pet page
 @app.route("/view_pet/<int:pet_id>", methods=["GET"])
 def view_pet(pet_id):
-
-    #if "user_id" not in session:  grey these out so guests can now view pets
-      #return redirect(url_for("login"))
-    
     pet = Pet.query.get(pet_id)
     if not pet:
         return "Pet not found", 404
-    user = get_user_by_id(session["user_id"])  # retrieve the user
+
+    user = None
+    if "user_id" in session:
+        user = get_user_by_id(session["user_id"])  # retrieve the user if logged in
+
     return render_template("view_pet.html", pet=pet, user=user)
 
 
@@ -507,7 +510,7 @@ def remove_saved_pet(pet_id):
     if "user_id" not in session:
 
         flash ("you must be logged into an account")
-        return redirect(url_for("index"))
+        return redirect(url_for("login"))
     
     user = get_user_by_id(session["user_id"])
     pet = Pet.query.get(pet_id)

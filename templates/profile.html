@@ -23,13 +23,13 @@
                 <h1>{{ user.username }}</h1>
                 <div class="profile-buttons">
                     {% if session['user_id'] != user.id %}
-                        {% if get_follow_status(session['user_id'], user.id) == -1 %}
+                        {% if current_user_id and get_follow_status(current_user_id, user.id) == -1 %}
                             <form action="{{ url_for('follow', user=user.id, action='request') }}" method="post">
                                 <button type="submit" class="profile-button">Follow</button>
                             </form>
-                        {% elif get_follow_status(session['user_id'], user.id) == 0 %}
+                        {% elif current_user_id and get_follow_status(current_user_id, user.id) == 0 %}
                             <button class="profile-button" disabled>Request Pending</button>
-                        {% elif get_follow_status(session['user_id'], user.id) == 1 %}
+                        {% elif current_user_id and get_follow_status(current_user_id, user.id) == 1 %}
                             <form action="{{ url_for('follow', user=user.id, action='unfollow') }}" method="post">
                                 <button type="submit" class="profile-button">Unfollow</button>
                             </form>

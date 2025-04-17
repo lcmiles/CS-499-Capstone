@@ -63,8 +63,11 @@
         </div>
     </div>
     {% else %}
-        <!-- Guest login/register -->
-        <a href="{{ url_for('login') }}" class="create-post-btn">Login</a>
-        <a href="{{ url_for('register') }}" class="create-post-btn">Register</a>
+    <div class="right-navbar">
+        <ul class="navbar-links">
+            <a href="{{ url_for('login') }}" class="create-post-btn">Login</a>
+            <a href="{{ url_for('register') }}" class="create-post-btn">Register</a>
+        </ul>   
+    </div>
     {% endif %}
 </div>
