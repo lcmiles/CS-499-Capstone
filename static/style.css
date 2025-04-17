@@ -18,12 +18,13 @@ body {
     border-radius: 10px;
     margin-top: 150px;
 }
+
 .navbar {
-    width: 100%;
-    background-color: #2ecc71;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    background-color: #2ecc71;
     padding: 10px 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     position: fixed;
@@ -31,8 +32,12 @@ body {
     z-index: 1000;
 }
 .navbar-logo {
-    height: 50px; /* Adjust the height to fit the navbar */
+    height: 50px;
     object-fit: contain;
+}
+.navbar-logo:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
 }
 .main-logo{
     margin-bottom: 30px;
@@ -40,6 +45,17 @@ body {
 .left-navbar {
     display: flex;
     align-items: center;
+    margin-left: 30px;
+}
+.center-navbar {
+    display: flex;
+    justify-content: center;
+    flex-grow: 1;
+}
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 .right-navbar {
     display: flex;
@@ -56,7 +72,6 @@ body {
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s;
-    margin-left: 15px;
 }
 .home-btn:hover, .create-post-btn:hover {
     background-color: #27ae60;
@@ -372,8 +387,10 @@ a.button:hover {
     resize: none;
 }
 .post-button {
-    display: flex;
-    float: right;
+    width: 50%;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 14px;
 }
 .home-button {
     display: flex;
@@ -457,6 +474,9 @@ h1 {
 }
 button:disabled {
     cursor: not-allowed;
+    background-color: #d3d3d3;
+    color: #a9a9a9;
+    border: 1px solid #d3d3d3;
 }
 .comment-header {
     display: flex;
@@ -751,4 +771,88 @@ h4 {
 
 .adopt-button:hover, .save-button:hover, .remove-save-button:hover {
     background-color: #2980b9;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    background-color: #d3d3d3;
+    color: #a9a9a9;
+    border: 1px solid #d3d3d3;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-row label {
+    font-weight: bold;
+}
+
+.form-row input[type="text"],
+.form-row input[type="email"],
+.form-row input[type="number"],
+.form-row textarea,
+.form-row select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.form-row input[type="checkbox"] {
+    width: auto;
+}
+
+.form-row input[type="submit"] {
+    padding: 10px 20px;
+    background-color: #1e8449;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    align-self: flex-start;
+}
+
+.form-row input[type="submit"]:hover {
+    background-color: #145a32;
+}
+
+.dropdown-link {
+    padding: 8px 15px;
+    background-color: #1e8449;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    display: inline-block;
+    margin: 5px 0;
+}
+
+.dropdown-link:hover {
+    background-color: #145a32;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.disabled-reason {
+    font-size: 14px;
+    color: #888;
+    margin-top: 5px;
 }

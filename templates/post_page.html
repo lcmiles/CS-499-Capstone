@@ -38,6 +38,11 @@
                     </div>
                 {% endif %}
                 <div class="post-content">{{ post.content }}</div>
+                {% if pet %}
+                    <div class="pet-link">
+                        <a class="post-content" href="{{ url_for('view_pet', pet_id=pet.id) }}" style="color:blue;">View Pet: {{ pet.name }}</a>
+                    </div>
+                {% endif %}
                 <form action="{{url_for('server_like', post_id=post.id)}}" method="post">
                     <input class="like-button" type="image" src="{{ url_for('static', filename='assets/Icon-like-button-transparent-PNG.png') }}">
                 </form>

@@ -8,9 +8,9 @@
         {% include 'navbar.html' %}
         <div class="container">
             <h1>Search Pets</h1>
-            <p>Please enter a partial or full name or breed below to search for specific pets:</p>
+            <p>Please enter pet name or details below to search for specific pets:</p>
             <form action="{{ url_for('search_pets_route') }}" method="get">
-                <input class="search-box" type="text" name="query" placeholder="Enter pet name or breed" required>
+                <input class="search-box" type="text" name="query" placeholder="Enter pet name or details" required>
                 <button type="submit">Search</button>
             </form>
             <div class="search-results">
