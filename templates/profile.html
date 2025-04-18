@@ -36,47 +36,60 @@
                         {% endif %}
                     {% endif %}
                 </div>
-                {% if user.followers or user.following %}
-                    <div class="profile-container">
-                        {% if user.followers %}
-                            <h3>Followers:</h3>
-                            <ul class="followers">
-                                {% for follow in user.followers %}
-                                    <li>
-                                        <img src="{{ follow.follower.profile_picture }}"
-                                            alt="Profile Picture" class="post-profile-picture">
-                                        <a class="username"
-                                            href="{{ url_for('view_profile', username=follow.follower.username) }}">{{ follow.follower.username }}</a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                        {% if user.following %}
-                            <h3>Following:</h3>
-                            <ul class="following">
-                                {% for follow in user.following %}
-                                    <li>
-                                        <img src="{{ follow.followed.profile_picture }}"
-                                            alt="Profile Picture" class="post-profile-picture">
-                                        <a class="username"
-                                            href="{{ url_for('view_profile', username=follow.followed.username) }}">{{ follow.followed.username }}</a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </div>
-                {% endif %}
-                <div class="profile-container">
-                    <h3>Email:</h3>
-                    <p class="email">{{ user.email }}</p>
+                <div class="follower-following-counts">
+                    <span class="count" onclick="openPopup('followers-popup')">Followers: {{ user.followers|length }}</span>
+                    <span class="count" onclick="openPopup('following-popup')">Following: {{ user.following|length }}</span>
                 </div>
-                {% if user.bio %}
-                    <div class="profile-container">
-                        <h3>Bio:</h3>
-                        <p class="bio">{{ user.bio }}</p>
-                    </div>
-                {% endif %}
-                {% if posts %}
+            </div>
+
+            <div id="followers-popup" class="popup">
+                <div class="popup-content">
+                    <span class="close" onclick="closePopup('followers-popup')">&times;</span>
+                    <h3>Followers</h3>
+                    {% if user.followers %}
+                        <ul class="followers">
+                            {% for follow in user.followers %}
+                                <li>
+                                    <img src="{{ follow.follower.profile_picture }}" alt="Profile Picture" class="post-profile-picture">
+                                    <a class="username" href="{{ url_for('view_profile', username=follow.follower.username) }}">{{ follow.follower.username }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-data">None</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="following-popup" class="popup">
+                <div class="popup-content">
+                    <span class="close" onclick="closePopup('following-popup')">&times;</span>
+                    <h3>Following</h3>
+                    {% if user.following %}
+                        <ul class="following">
+                            {% for follow in user.following %}
+                                <li>
+                                    <img src="{{ follow.followed.profile_picture }}" alt="Profile Picture" class="post-profile-picture">
+                                    <a class="username" href="{{ url_for('view_profile', username=follow.followed.username) }}">{{ follow.followed.username }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-data">None</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="profile-container">
+                <h3>Email:</h3>
+                <p class="email">{{ user.email }}</p>
+            </div>
+            {% if user.bio %}
+                <div class="profile-container">
+                    <h3>Bio:</h3>
+                    <p class="bio">{{ user.bio }}</p>
+                </div>
+            {% endif %}
+            {% if posts %}
     <div class="profile-container">
         <h3>Posts:</h3>
         {% if user.is_private and session['user_id'] != user.id and get_follow_status(session['user_id'], user.id) != 1 %}
@@ -134,7 +147,22 @@
                     var localTime = new Date(utcTime);
                     element.textContent = localTime.toLocaleString() + " CT";
                 }
+
+                var popups = document.getElementsByClassName("popup");
+                for (var i = 0; i < popups.length; i++) {
+                    popups[i].style.display = "none";
+                }
             });
+
+            function openPopup(popupId) {
+                var popup = document.getElementById(popupId);
+                popup.style.display = "flex";
+            }
+
+            function closePopup(popupId) {
+                var popup = document.getElementById(popupId);
+                popup.style.display = "none";
+            }
         </script>
     </body>
 </html>

@@ -915,9 +915,102 @@ button:disabled {
     text-align: center;
     width: fit-content;
 }
-.adoption-status.unadopted {
-    background-color: rgba(255, 0, 0, 0.7);
-}
 .adoption-status.adopted {
+    background-color: grey;
+}
+.adoption-status.unadopted {
     background-color: rgba(0, 128, 0, 0.7);
+}
+
+.follower-following-counts {
+    margin-top: 10px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+.follower-following-counts .count {
+    cursor: pointer;
+    font-weight: bold;
+    color: #1e8449;
+    text-decoration: none;
+}
+.follower-following-counts .count:hover {
+    color: #145a32;
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.popup-content h3 {
+    margin-bottom: 15px;
+}
+
+.popup-content ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.popup-content ul li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.popup-content ul li img {
+    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.popup-content ul li a {
+    color: #1e8449;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.popup-content ul li a:hover {
+    color: #145a32;
+}
+
+.popup .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+}
+
+.popup .close:hover {
+    color: #000;
+}
+
+.no-data {
+    text-align: center;
+    color: grey;
+    font-size: 16px;
+    margin-top: 20px;
 }
