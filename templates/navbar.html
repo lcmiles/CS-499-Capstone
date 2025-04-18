@@ -8,13 +8,18 @@
 
     <div class="center-navbar">
         <ul class="navbar-links">
+            {% if session.get('user_id') %}
             <a href="{{ url_for('create_post') }}" class="create-post-btn">Create Pet Listing</a>
+            {% endif %}
             <a href="{{ url_for('search_users') }}" class="create-post-btn">Search Users</a>
             <a href="{{ url_for('search_pets_route') }}" class="create-post-btn">Search Pets</a>
+            {% if session.get('user_id') %}
             <a href="{{ url_for('saved_pets') }}" class="create-post-btn">Saved Pets</a>
+            {% endif %}
         </ul>
     </div>
 
+    {% if session.get('user_id') %}
     <div class="right-navbar">
         <div class="dropdown">
             <img src="{{ session['profile_picture'] }}" alt="Profile Picture" class="profile-picture"/>
@@ -57,4 +62,12 @@
             </div>
         </div>
     </div>
+    {% else %}
+    <div class="right-navbar">
+        <ul class="navbar-links">
+            <a href="{{ url_for('login') }}" class="create-post-btn">Login</a>
+            <a href="{{ url_for('register') }}" class="create-post-btn">Register</a>
+        </ul>   
+    </div>
+    {% endif %}
 </div>
