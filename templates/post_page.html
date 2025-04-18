@@ -40,13 +40,16 @@
                 <div class="post-content">{{ post.content }}</div>
                 {% if pet %}
                     <div class="pet-link">
-                        <a class="post-content" href="{{ url_for('view_pet', pet_id=pet.id) }}" style="color:blue;">View Pet: {{ pet.name }}</a>
+                        <a class="view-pet-btn" href="{{ url_for('view_pet', pet_id=pet.id) }}">View Pet: {{ pet.name }}</a>
                     </div>
                 {% endif %}
-                <form action="{{url_for('server_like', post_id=post.id)}}" method="post">
-                    <input class="like-button" type="image" src="{{ url_for('static', filename='assets/Icon-like-button-transparent-PNG.png') }}">
-                </form>
-                <a>Likes: {{ likes }}</a>
+                <div class="like-section">
+                    <form action="{{ url_for('server_like', post_id=post.id) }}" method="post" class="like-form">
+                        <input class="like-button" type="image" 
+                               src="{{ url_for('static', filename='assets/like-liked.png') if user and post.id in liked_posts else url_for('static', filename='assets/like-unliked.png') }}">
+                    </form>
+                    <span class="like-count">{{ likes }}</span>
+                </div>
             </div>
             <a>Comments: </a>
             {% for comment in comments %}

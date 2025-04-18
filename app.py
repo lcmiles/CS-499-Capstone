@@ -362,8 +362,10 @@ def follow():
 @app.route("/post/<post_id>", methods=["GET", "POST"])
 def post_page(post_id):
     user = None
+    liked_posts = []
     if "user_id" in session:
         user = get_user_by_id(session["user_id"])
+        liked_posts = [like.post_id for like in Like.query.filter_by(user_id=session["user_id"]).all()]
     
     post = get_post_by_id(post_id).first()  # Ensure post is always initialized
     if not post:
@@ -385,7 +387,7 @@ def post_page(post_id):
     central = pytz.timezone("US/Central")
     post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
 
-    return render_template("post_page.html", post=post, comments=comments, user=user, likes=likes, pet=pet)
+    return render_template("post_page.html", post=post, comments=comments, user=user, likes=likes, pet=pet, liked_posts=liked_posts)
 
 
 # routing to like posts
@@ -437,9 +439,7 @@ def search_pets_route():
     
     query = request.args.get("query")
     if not query:
-        pets = Pet.query.filter_by(
-            is_adopted=False
-        ).all()  # if query blank return all pets
+        pets = Pet.query.all()  # if query blank return all pets
     else:
         pets = (
             Pet.query.filter(  # run query against all pets in db
@@ -451,7 +451,6 @@ def search_pets_route():
                 | (Pet.vaccination_status.ilike(f"%{query}%"))
                 | (Pet.description.ilike(f"%{query}%"))
             )
-            .filter_by(is_adopted=False)  # not adopted
             .all()
         )
     return render_template("search_pets.html", pets=pets)

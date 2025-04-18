@@ -872,3 +872,52 @@ button:disabled {
 .guest-button:hover {
     background-color: darkgrey !important;
 }
+.view-pet-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #1e8449;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.view-pet-btn:hover {
+    background-color: #145a32;
+}
+
+.like-section {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.like-button {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+}
+.like-count {
+    font-size: 14px;
+    color: #333;
+}
+
+.adoption-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    margin-left: 10px;
+    text-align: center;
+    width: fit-content;
+}
+.adoption-status.unadopted {
+    background-color: rgba(255, 0, 0, 0.7);
+}
+.adoption-status.adopted {
+    background-color: rgba(0, 128, 0, 0.7);
+}
