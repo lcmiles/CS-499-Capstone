@@ -21,7 +21,7 @@ import base64
 
 app = Flask(__name__)
 
-LOCAL_TESTING = True  # set True if running locally
+LOCAL_TESTING = False  # set True if running locally
 LOCAL_DB = False  # set True if using local database
 
 if LOCAL_TESTING:
@@ -36,7 +36,7 @@ else:
             f.write(decoded_credentials)
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/service_account.json"
 
-DB_HOST = "100.113.76.11"  # logan's linux server dns used for sql server
+DB_HOST = "logansserver1511.duckdns.org"  # logan's linux server dns used for sql server
 DB_USER = "cs499user"
 DB_PASS = "cs499password"
 DB_NAME = "cs499_capstone_db"
