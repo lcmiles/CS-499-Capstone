@@ -8,12 +8,31 @@
             button.disabled = true;
             button.form.submit();
         }
+
+        function toggleOtherHomeType(select) {
+            const otherInput = document.getElementById('other_home_type');
+            if (select.value === 'Other') {
+                otherInput.style.display = 'block';
+                otherInput.required = true;
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.required = false;
+            }
+        }
     </script>
 </head>
 <body>
     {% include 'navbar.html' %}
     <div class="container">
         <h2>Adoption Application for {{ pet.name }}</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+            messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %} {% endwith %}
         <form action="{{ url_for('adopt_pet_application', pet_id=pet.id) }}" method="post" class="form-container">
             <div class="form-row">
                 <label for="full_name">Full Name:</label>
@@ -41,34 +60,44 @@
             </div>
             <div class="form-row">
                 <label for="home_type">Type of Home:</label>
-                <select id="home_type" name="home_type" required>
+                <select id="home_type" name="home_type" required onchange="toggleOtherHomeType(this)">
                     <option value="Apartment">Apartment</option>
                     <option value="House">House</option>
+                    <option value="Other">Other</option>
                 </select>
+                <input type="text" id="other_home_type" name="other_home_type" placeholder="Please specify" style="display: none; margin-top: 10px;">
             </div>
             <div class="form-row">
                 <label for="children_info">Children (include age):</label>
                 <textarea id="children_info" name="children_info"></textarea>
             </div>
             <div class="form-row">
-                <label for="first_time_owner">First Time Pet Owner?</label>
-                <input type="checkbox" id="first_time_owner" name="first_time_owner">
-            </div>
-            <div class="form-row">
                 <label for="other_pets_info">Other Pets (species, breed, age, temperament):</label>
                 <textarea id="other_pets_info" name="other_pets_info"></textarea>
             </div>
             <div class="form-row">
-                <label for="home_visit_agreement">Willing to do a home visit or virtual interview?</label>
-                <input type="checkbox" id="home_visit_agreement" name="home_visit_agreement">
+                <label>
+                    <input type="checkbox" id="first_time_owner" name="first_time_owner">
+                    First Time Pet Owner?
+                </label>
             </div>
             <div class="form-row">
-                <label for="fee_agreement">Willing to pay fee if required in person?</label>
-                <input type="checkbox" id="fee_agreement" name="fee_agreement">
+                <label>
+                    <input type="checkbox" id="home_visit_agreement" name="home_visit_agreement">
+                    Willing to do a home visit or virtual interview?
+                </label>
             </div>
             <div class="form-row">
-                <label for="return_agreement">Agree to return the pet if the arrangement does not work out?</label>
-                <input type="checkbox" id="return_agreement" name="return_agreement" required>
+                <label>
+                    <input type="checkbox" id="fee_agreement" name="fee_agreement">
+                    Willing to pay fee if required in person?
+                </label>
+            </div>
+            <div class="form-row">
+                <label>
+                    <input type="checkbox" id="return_agreement" name="return_agreement" required>
+                    Agree to return the pet if the arrangement does not work out?
+                </label>
             </div>
             <div class="form-row">
                 <label for="signature">Signature:</label>

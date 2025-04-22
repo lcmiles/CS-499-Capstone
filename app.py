@@ -535,6 +535,17 @@ def adopt_pet_application(pet_id):
     if not pet or pet.is_adopted:
         return "Pet not available for adoption", 404
     if request.method == "POST":
+        try:
+            age = int(request.form.get("age"))
+            if age <= 0:
+                raise ValueError("Age must be a positive integer.")
+        except ValueError:
+            flash("Invalid age. Please enter a positive integer.", "error")
+            return render_template("adopt_pet_application.html", pet=pet)
+
+        home_type = request.form.get("home_type")
+        if home_type == "Other":
+            home_type = request.form.get("other_home_type")  # use the input text if "other" is selected
         data = {
             "adopter_id": session["user_id"],
             "owner_id": pet.user_id,
@@ -543,9 +554,9 @@ def adopt_pet_application(pet_id):
             "address": request.form.get("address"),
             "email": request.form.get("email"),
             "phone": request.form.get("phone"),
-            "age": int(request.form.get("age")),
+            "age": age,
             "reason_for_adopting": request.form.get("reason_for_adopting"),
-            "home_type": request.form.get("home_type"),
+            "home_type": home_type,
             "children_info": request.form.get("children_info"),
             "first_time_owner": request.form.get("first_time_owner") == "on",
             "other_pets_info": request.form.get("other_pets_info"),
@@ -581,19 +592,31 @@ def update_adoption_status_route(application_id, status):
     return redirect(url_for("index"))
 
 
-# routing to handle follow requests and adoption application notifications globally for users
+@app.route("/mark_notification_viewed/<int:notification_id>", methods=["POST"])
+def mark_notification_viewed(notification_id):
+    notification = Adoption_Info.query.get(notification_id)
+    if notification:
+        db.session.delete(notification)  # remove the notification after viewing
+        db.session.commit()
+    return redirect(url_for("view_pet", pet_id=notification.pet_id))
+
 @app.context_processor
 def inject_notifications():
     if "user_id" in session:
         current_user_id = session["user_id"]
         follow_requests = get_follow_requests(current_user_id)
         adoption_applications = get_adoption_notifications(current_user_id)
+        application_status_notifications = Adoption_Info.query.filter(
+            Adoption_Info.adopter_id == current_user_id,
+            Adoption_Info.status.in_(["Approved", "Denied"])
+        ).all()
         notifications = {
             "follow_requests": follow_requests,
             "adoption_applications": adoption_applications,
+            "application_status_notifications": application_status_notifications,
         }
         return {"notifications": notifications}
-    return {"notifications": {"follow_requests": [], "adoption_applications": []}}
+    return {"notifications": {"follow_requests": [], "adoption_applications": [], "application_status_notifications": []}}
 
 if __name__ == "__main__":
     # uncomment line to rebuild sql db with next deployment

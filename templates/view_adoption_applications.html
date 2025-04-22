@@ -7,10 +7,10 @@
 <body>
     {% include 'navbar.html' %}
     <div class="container">
-        <h2>Adoption Applications</h2>
+        <h1 style="text-align: center;">Adoption Applications</h1>
         {% if applications %}
             {% for application in applications %}
-                <div class="application">
+                <div class="application" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
                     <p><strong>Adopter Name:</strong> {{ application.full_name }}</p>
                     <p><strong>Address:</strong> {{ application.address }}</p>
                     <p><strong>Email:</strong> {{ application.email }}</p>
@@ -26,19 +26,25 @@
                     <p><strong>Return Agreement:</strong> {{ "Yes" if application.return_agreement else "No" }}</p>
                     <p><strong>Signature:</strong> {{ application.signature }}</p>
                     <p><strong>Date Submitted:</strong> {{ application.date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                    <p><strong>Status:</strong> {{ application.status }}</p>
-                    <div class="button-group">
-                        <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Approved') }}" method="post" style="display: inline;">
-                            <button type="submit" class="dropdown-link">Approve</button>
-                        </form>
-                        <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Denied') }}" method="post" style="display: inline;">
-                            <button type="submit" class="dropdown-link">Deny</button>
-                        </form>
-                    </div>
+                    <p><strong>Status:</strong> 
+                        <span class="adoption-status {{ 'approved' if application.status == 'Approved' else 'denied' if application.status == 'Denied' else 'pending' }}">
+                            {{ application.status }}
+                        </span>
+                    </p>
+                    {% if application.status == "Pending" %}
+                        <div class="button-group">
+                            <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Approved') }}" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-link">Approve</button>
+                            </form>
+                            <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Denied') }}" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-link">Deny</button>
+                            </form>
+                        </div>
+                    {% endif %}
                 </div>
             {% endfor %}
         {% else %}
-            <p>No adoption applications found.</p>
+            <p class="adoption-requests">No adoption applications found.</p>
         {% endif %}
     </div>
 </body>

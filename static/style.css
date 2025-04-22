@@ -921,6 +921,15 @@ button:disabled {
 .adoption-status.unadopted {
     background-color: rgba(0, 128, 0, 0.7);
 }
+.adoption-status.approved {
+    background-color: rgba(0, 128, 0, 0.7);
+}
+.adoption-status.denied {
+    background-color: rgba(255, 0, 0, 0.7);
+}
+.adoption-status.pending {
+    background-color: rgba(255, 165, 0, 0.7);
+}
 
 .follower-following-counts {
     margin-top: 10px;
@@ -1013,4 +1022,8 @@ button:disabled {
     color: grey;
     font-size: 16px;
     margin-top: 20px;
+}
+.adoption-requests {
+    font-size: 18px;
+    color: #888;
 }
