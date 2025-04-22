@@ -31,12 +31,20 @@
                     Adopt
                 </button>
             </form>
-            <form action="{{ url_for('save_pet', pet_id=pet.id) }}" method="post" style="display: inline;">
-                <button type="submit" class="save-button" 
-                        {% if pet.user_id == user.id or pet.is_adopted %}disabled{% endif %}>
-                    Save
-                </button>
-            </form>
+            {% if pet in user.saved_pets %}
+                <form action="{{ url_for('remove_saved_pet', pet_id=pet.id) }}" method="post" style="display: inline;">
+                    <button type="submit" class="save-button">
+                        Unsave
+                    </button>
+                </form>
+            {% else %}
+                <form action="{{ url_for('save_pet', pet_id=pet.id) }}" method="post" style="display: inline;">
+                    <button type="submit" class="save-button" 
+                            {% if pet.user_id == user.id or pet.is_adopted %}disabled{% endif %}>
+                        Save
+                    </button>
+                </form>
+            {% endif %}
             {% if pet.user_id == user.id %}
                 <p class="disabled-reason">You cannot adopt your own pet.</p>
             {% elif pet.is_adopted %}

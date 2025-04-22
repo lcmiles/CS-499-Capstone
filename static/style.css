@@ -758,7 +758,7 @@ h4 {
 
 .adopt-button, .save-button, .remove-save-button {
     padding: 10px 20px;
-    background-color: #3498db;
+    background-color: #1e8449;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -769,7 +769,7 @@ h4 {
 }
 
 .adopt-button:hover, .save-button:hover, .remove-save-button:hover {
-    background-color: #2980b9;
+    background-color: #145a32;
 }
 
 button:disabled {

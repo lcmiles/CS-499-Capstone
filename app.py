@@ -26,7 +26,7 @@ LOCAL_DB = False  # set True if using local database
 
 if LOCAL_TESTING:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
-    "cs-499-final-project-177edd5f02ab.json"  # gcs service account json
+    "cs-499-final-project-bc145992a16c.json"  # gcs service account json
 )
 else:
     encoded_credentials = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
@@ -485,7 +485,7 @@ def save_pet(pet_id):
     
     save_pet_to_account(pet_id, session["user_id"])
     flash("Pet saved to your account!", "success")
-    return redirect(url_for("index", pet_id=pet_id))
+    return redirect(url_for("saved_pets", pet_id=pet_id))
 
 
 # routing to load pet page
@@ -516,8 +516,8 @@ def remove_saved_pet(pet_id):
     if pet in user.saved_pets:
         user.saved_pets.remove(pet)
         db.session.commit()
-        flash("Pet removed from your saved list!", "success")
-    return redirect(url_for("view_pet", pet_id=pet_id))
+        flash("Pet removed from your saved list", "success")
+    return redirect(url_for("saved_pets", pet_id=pet_id))
 
 
 # helper function to load likes
