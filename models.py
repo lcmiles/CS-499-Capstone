@@ -93,6 +93,7 @@ class Pet(db.Model):
     photo = db.Column(db.String(120), nullable=True)
     is_adopted = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    shelter_id = db.Column(db.Integer, db.ForeignKey('shelter.id'), nullable=True)
     user = db.relationship("User", backref=db.backref("adopted_pets", lazy=True))  # Renamed backref to 'adopted_pets'
 
 
@@ -285,3 +286,12 @@ def __repr__(self):
 
 def __repr__(self):
     return f"Post('{self.content}', '{self.timestamp}')"
+
+class Shelter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    location = db.Column(db.String(200), nullable=True)
+    contact_email = db.Column(db.String(120), nullable=True)
+    website = db.Column(db.String(200), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    pets = db.relationship('Pet', backref='shelter', lazy=True)

@@ -23,7 +23,7 @@ import sqlalchemy
 
 app = Flask(__name__)
 
-LOCAL_TESTING = False  # Set True if running locally
+LOCAL_TESTING = True  # Set True if running locally
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cs-499-final-project-177edd5f02ab.json"
 
 DB_HOST = "logansserver1511.duckdns.org"  # logan's linux server dns used for sql server
@@ -434,9 +434,53 @@ def remove_saved_pet(pet_id):
 def utility_processor():
     return dict(get_likes=get_likes)
 
-if __name__ == "__main__":
+@app.route("/shelters", methods=["GET"])
+def view_shelters():
+    print("✅ /shelters was visited")
+    shelters = Shelter.query.all()
+    return render_template("shelter_list.html", shelters=shelters)
+
+@app.route("/shelter/<int:shelter_id>", methods=["GET"])
+def view_shelter(shelter_id):
+    shelter = Shelter.query.get(shelter_id)
+    if not shelter:
+        return "Shelter not found", 404
+    return render_template("shelter_detail.html", shelter=shelter)
+
+@app.route("/add_shelter", methods=["GET", "POST"])
+def add_shelter():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        name = request.form.get("name")
+        location = request.form.get("location")
+        email = request.form.get("contact_email")
+        website = request.form.get("website")
+        description = request.form.get("description")
+        shelter = Shelter(
+            name=name,
+            location=location,
+            contact_email=email,
+            website=website,
+            description=description
+        )
+        db.session.add(shelter)
+        db.session.commit()
+        flash("Shelter added!", "success")
+        return redirect(url_for("view_shelters"))
+    return render_template("add_shelter.html")
+
+
+# if __name__ == "__main__":
     # uncomment line to rebuild sql db with next deployment
     # with app.app_context():
     #     db.drop_all()
     #     db.create_all()
+    # app.run(host="0.0.0.0", port=8080)
+
+# temp test
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    print("✅ Tables created.")
     app.run(host="0.0.0.0", port=8080)
