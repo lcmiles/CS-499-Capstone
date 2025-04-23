@@ -352,33 +352,11 @@ def __repr__(self):
 def __repr__(self):
     return f"Post('{self.content}', '{self.timestamp}')"
 
-
-# helper functions
+# Helper functions
 def create_adoption_application(data):
     application = Adoption_Info(**data)
     db.session.add(application)
     db.session.commit()
-
-
-def get_adoption_applications(owner_id):
-    return Adoption_Info.query.filter_by(owner_id=owner_id).all()
-
-
-def update_adoption_status(application_id, status):
-    application = Adoption_Info.query.get(application_id)
-    application.status = status
-    if status == "Approved":
-        pet = Pet.query.get(application.pet_id)
-        pet.is_adopted = True
-    db.session.commit()
-
-
-# helper functions
-def create_adoption_application(data):
-    application = Adoption_Info(**data)
-    db.session.add(application)
-    db.session.commit()
-
 
 def get_adoption_applications(owner_id):
     return Adoption_Info.query.filter_by(owner_id=owner_id).all()

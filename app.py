@@ -21,8 +21,8 @@ import base64
 
 app = Flask(__name__)
 
-LOCAL_TESTING = False  # set True if running locally
-LOCAL_DB = False  # set True if using local database
+LOCAL_TESTING = True  # set True if running locally
+LOCAL_DB = True  # set True if using local database
 
 if LOCAL_TESTING:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
@@ -620,7 +620,6 @@ def inject_notifications():
 
 @app.route("/shelters", methods=["GET"])
 def view_shelters():
-    print("✅ /shelters was visited")
     shelters = Shelter.query.all()
     return render_template("shelter_list.html", shelters=shelters)
 
@@ -655,16 +654,9 @@ def add_shelter():
     return render_template("add_shelter.html")
 
 
-# if __name__ == "__main__":
-    # uncomment line to rebuild sql db with next deployment
-    # with app.app_context():
-    #     db.drop_all()
-    #     db.create_all()
-    # app.run(host="0.0.0.0", port=8080)
-
-# temp test
 if __name__ == "__main__":
+    # uncomment line to rebuild sql db with next deployment
     with app.app_context():
+        db.drop_all()
         db.create_all()
-    print("✅ Tables created.")
     app.run(host="0.0.0.0", port=8080)
