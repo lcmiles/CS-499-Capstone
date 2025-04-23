@@ -769,25 +769,23 @@ def manage_shelter(shelter_id):
     if not staff_member:
         flash("You do not have permission to manage this shelter.", "error")
         return redirect(url_for("view_shelters"))
-
     shelter = Shelter.query.get(shelter_id)
     pets = Pet.query.filter_by(shelter_id=shelter_id).all()
-    unassociated_pets = Pet.query.filter_by(
-        shelter_id=None
+    staff_users = ShelterStaff.query.filter_by(shelter_id=shelter_id).all()
+    staff_ids = [staff.user_id for staff in staff_users]
+    unassociated_pets = Pet.query.filter(
+        Pet.shelter_id.is_(None),  # no shelter associated
+        Pet.user_id.in_(staff_ids),  # posted by a shelter staff member
     ).all()  # fetch unassociated pets
-
     adoption_requests = Adoption_Info.query.filter(
         Adoption_Info.pet_id.in_([pet.id for pet in pets]),
         Adoption_Info.status == "Pending",
     ).all()
-
     adoption_history = Adoption_Info.query.filter(
         Adoption_Info.pet_id.in_([pet.id for pet in pets]),
         Adoption_Info.status.in_(["Approved", "Denied"]),
     ).all()
-
     staff = ShelterStaff.query.filter_by(shelter_id=shelter_id).all()
-
     return render_template(
         "manage_shelter.html",
         shelter=shelter,
@@ -819,7 +817,7 @@ def add_pet_to_shelter(shelter_id):
     if pet and pet.shelter_id is None:  # Ensure the pet is not already associated
         pet.shelter_id = shelter_id
         db.session.commit()
-        flash(f"Pet '{pet.name}' has been associated with the shelter.", "success")
+        flash(f"Pet '{pet.name}' has been added to the shelter.", "success")
     else:
         flash(
             "Invalid pet or the pet is already associated with another shelter.",
