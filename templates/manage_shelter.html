@@ -9,11 +9,18 @@
     <div class="container">
         <h1>Manage Shelter: {{ shelter.name }}</h1>
         <h2>Staff Members</h2>
-        <ul>
-            {% for staff in staff %}
-                <li>{{ staff.user.username }} ({{ staff.user.email }})</li>
-            {% endfor %}
-        </ul>
+        <div class="search-results">
+            <ul>
+                {% for staff in staff %}
+                    <ul>
+                            <li>
+                                <img src="{{ staff.user.profile_picture }}" alt="Profile Picture" class="post-profile-picture">
+                                <a class="username" href="{{ url_for('view_profile', username=staff.user.username) }}">{{ staff.user.username }}</a>
+                            </li>
+                    </ul>
+                {% endfor %}
+            </ul>
+        </div>
         <form method="POST" action="{{ url_for('add_shelter_staff', shelter_id=shelter.id) }}">
             <label for="email">Add Staff Member (Email):</label>
             <input type="email" name="email" required>

@@ -41,7 +41,6 @@ class User(db.Model):
     )
 
 
-
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -100,7 +99,7 @@ class Pet(db.Model):
     photo = db.Column(db.String(120), nullable=True)
     is_adopted = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
-    shelter_id = db.Column(db.Integer, db.ForeignKey('shelter.id'), nullable=True)
+    shelter_id = db.Column(db.Integer, db.ForeignKey("shelter.id"), nullable=True)
     user = db.relationship("User", backref=db.backref("adopted_pets", lazy=True))
 
 
@@ -209,7 +208,7 @@ def get_post_by_id(post_id):
 
 # function to add comment to table
 def add_comment(post_id, user_id, content):
-   
+
     new_comment = Comment(post_id=post_id, user_id=user_id, content=content)
 
     db.session.add(new_comment)
@@ -224,7 +223,7 @@ def get_comments(post_id):
 
 # function to add like to table
 def like_post(post_id, user_id):
-    
+
     existing_like = Like.query.filter_by(post_id=post_id, user_id=user_id).first()
 
     if existing_like:
@@ -352,11 +351,13 @@ def __repr__(self):
 def __repr__(self):
     return f"Post('{self.content}', '{self.timestamp}')"
 
+
 # Helper functions
 def create_adoption_application(data):
     application = Adoption_Info(**data)
     db.session.add(application)
     db.session.commit()
+
 
 def get_adoption_applications(owner_id):
     return Adoption_Info.query.filter_by(owner_id=owner_id).all()
@@ -370,6 +371,7 @@ def update_adoption_status(application_id, status):
         pet.is_adopted = True
     db.session.commit()
 
+
 class Shelter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -378,23 +380,31 @@ class Shelter(db.Model):
     website = db.Column(db.String(200), nullable=True)
     description = db.Column(db.Text, nullable=True)
     submitted_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    is_approved = db.Column(db.Boolean, default=None)  # None = pending, True = approved, False = denied
-    pets = db.relationship('Pet', backref='shelter', lazy=True)
-
+    is_approved = db.Column(
+        db.Boolean, default=None
+    )  # None = pending, True = approved, False = denied
+    pets = db.relationship("Pet", backref="shelter", lazy=True)
     user = db.relationship("User", backref=db.backref("submitted_shelters", lazy=True))
+
 
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
 
+
 # function to check if a user is an admin
 def is_admin(email):
     return Admin.query.filter_by(email=email).first() is not None
+
 
 class ShelterStaff(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     shelter_id = db.Column(db.Integer, db.ForeignKey("shelter.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-
     shelter = db.relationship("Shelter", backref=db.backref("staff", lazy=True))
     user = db.relationship("User", backref=db.backref("shelter_roles", lazy=True))
+
+
+# function to check if a user is shelter staff
+def is_shelter_staff(user_id):
+    return ShelterStaff.query.filter_by(user_id=user_id).first() is not None
