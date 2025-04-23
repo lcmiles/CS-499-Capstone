@@ -36,16 +36,21 @@ The goal of this project was to develop a web application to streamline the pet 
 - Process payments for applicable adoptions  
 - Update pet availability post-adoption  
 
-### Shelter Management  
-- Review and approve adoption applications  
-- Secure adoption history management    
+### Shelter Management
+- Shelter pages display pets up for adoption at shelters
+- Shelter page requests can only be approved by site admin
+- Shelter staff can:
+  - Send request to add other staff members
+  - View/add/remove pets associated with shelter that were posted by staff members
+  - View pet adoption history from the shelter
+  - View/approve/deny adoption requests for pets associated with shelter
+
 
 ## Repo structure:
 
 ├── **app.py**  - *Main Flask application file, contains routes and app configuration.*  
 ├── **models.py**  - *Database models and helper functions for interacting with the database.*  
 ├── **.gitignore**  - *Specifies files and directories to be ignored by Git.*  
-├── **cs-499-final-project-177edd5f02ab.json**  - *Google Cloud credentials file for accessing storage.*  
 ├── **Dockerfile**  - *Instructions for building the Docker image for the application.*  
 ├── **docker-compose.yaml**  - *Configuration for running the application with Docker Compose.*  
 ├── **requirements.txt**  - *List of Python dependencies required for the project.*  
