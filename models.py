@@ -397,6 +397,7 @@ def is_admin(email):
     return Admin.query.filter_by(email=email).first() is not None
 
 
+# table for shelter staff members
 class ShelterStaff(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     shelter_id = db.Column(db.Integer, db.ForeignKey("shelter.id"), nullable=False)
@@ -408,3 +409,18 @@ class ShelterStaff(db.Model):
 # function to check if a user is shelter staff
 def is_shelter_staff(user_id):
     return ShelterStaff.query.filter_by(user_id=user_id).first() is not None
+
+
+# table for requesting staff
+class StaffRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    shelter_id = db.Column(db.Integer, db.ForeignKey("shelter.id"), nullable=False)
+    requested_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    status = db.Column(
+        db.String(20), default="Pending"
+    )  # "Pending", "Approved", "Denied"
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    shelter = db.relationship("Shelter", backref="staff_requests")
+    requested_user = db.relationship("User", foreign_keys=[user_id])
+    requesting_staff = db.relationship("User", foreign_keys=[requested_by])

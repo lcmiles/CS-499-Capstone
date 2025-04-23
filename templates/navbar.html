@@ -41,10 +41,10 @@
 
         <div class="notifs">
             <button class="dropbtn">
-                Notifications ({{ notifications.follow_requests|length + notifications.adoption_applications|length + notifications.application_status_notifications|length + notifications.shelter_requests|length }}) &#9662;
+                Notifications ({{ notifications.follow_requests|length + notifications.adoption_applications|length + notifications.application_status_notifications|length + notifications.shelter_requests|length + notifications.staff_requests|length }}) &#9662;
             </button>
             <div class="notifs-content dropdown-content">
-                {% if notifications.follow_requests or notifications.adoption_applications or notifications.application_status_notifications or notifications.shelter_requests %}
+                {% if notifications.follow_requests or notifications.adoption_applications or notifications.application_status_notifications or notifications.shelter_requests or notifications.staff_requests %}
                     {% for notif in notifications.follow_requests %}
                         <div>
                             Follow request from {{ notif.follower.username }}
@@ -56,6 +56,7 @@
                             </form>
                         </div>
                     {% endfor %}
+
                     {% for notif in notifications.adoption_applications %}
                         <div>
                             Application for {{ notif.pet.name }} by {{ notif.adopter.username }}
@@ -64,6 +65,7 @@
                             </form>
                         </div>
                     {% endfor %}
+
                     {% for notif in notifications.application_status_notifications %}
                         <div>
                             Your application for {{ notif.pet.name }} was {{ notif.status }}.
@@ -72,11 +74,24 @@
                             </form>
                         </div>
                     {% endfor %}
+
                     {% for notif in notifications.shelter_requests %}
                         <div>
                             Shelter request: {{ notif.name }}
                             <form action="{{ url_for('view_shelter_requests') }}" method="get">
                                 <button type="submit" class="dropdown-link">View</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+
+                    {% for notif in notifications.staff_requests %}
+                        <div>
+                            {{ notif.requesting_staff.username }} has requested you join the staff of {{ notif.shelter.name }}.
+                            <form action="{{ url_for('handle_staff_request', request_id=notif.id, action='approve') }}" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-link">Approve</button>
+                            </form>
+                            <form action="{{ url_for('handle_staff_request', request_id=notif.id, action='deny') }}" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-link">Deny</button>
                             </form>
                         </div>
                     {% endfor %}

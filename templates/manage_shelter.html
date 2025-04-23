@@ -29,11 +29,30 @@
                 {% endfor %}
             </ul>
         </div>
-        <form method="POST" action="{{ url_for('add_shelter_staff', shelter_id=shelter.id) }}">
-            <label for="email">Add Staff Member (Email):</label>
-            <input type="email" name="email" required>
-            <button type="submit" class="btn">Add Staff</button>
+
+        <h2>Request to Add Staff</h2>
+        <form method="POST" action="{{ url_for('request_add_staff', shelter_id=shelter.id) }}">
+            <label for="email">User Email:</label>
+            <input type="email" name="email" id="email" required>
+            <button type="submit" class="btn">Send Request</button>
         </form>
+        
+        <h2>Staff Request History</h2>
+        <ul>
+            {% if staff_request_outcomes %}
+                {% for outcome in staff_request_outcomes %}
+                    <li>
+                        Your request to add <strong>{{ outcome.requested_user.username }}</strong>
+                        as staff to <strong>{{ outcome.shelter.name }}</strong> was
+                        <strong>{{ outcome.status.lower() }}</strong>.
+                    </li>
+                {% endfor %}
+            {% else %}
+                <p>No staff request history found.</p>
+            {% endif %}
+        </ul>
+
+
         <h2>Pets</h2>
         <div class="search-results">
             {% if unadopted_pets %}

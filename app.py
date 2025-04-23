@@ -21,8 +21,8 @@ import base64
 
 app = Flask(__name__)
 
-LOCAL_TESTING = True  # set True if running locally
-LOCAL_DB = True  # set True if using local database
+LOCAL_TESTING = False  # set True if running locally
+LOCAL_DB = False  # set True if using local database
 
 if LOCAL_TESTING:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
@@ -639,23 +639,26 @@ def inject_notifications():
             Adoption_Info.status.in_(["Approved", "Denied"]),
         ).all()
         shelter_requests = []
-        shelter_roles = ShelterStaff.query.filter_by(
-            user_id=current_user_id
-        ).all()  # store only serializable data for shelter roles
+        shelter_roles = ShelterStaff.query.filter_by(user_id=current_user_id).all()
         session["shelter_roles"] = [
             {"shelter_id": role.shelter_id, "shelter_name": role.shelter.name}
             for role in shelter_roles
         ]
-        if is_admin(
-            get_user_by_id(current_user_id).email
-        ):  # check if the user is an admin
+        if is_admin(get_user_by_id(current_user_id).email):
             shelter_requests = Shelter.query.filter_by(is_approved=None).all()
+
+        staff_requests = StaffRequest.query.filter_by(
+            user_id=current_user_id, status="Pending"
+        ).all()
+
         notifications = {
             "follow_requests": follow_requests,
             "adoption_applications": adoption_applications,
             "application_status_notifications": application_status_notifications,
             "shelter_requests": shelter_requests,
+            "staff_requests": staff_requests,
         }
+
         return {"notifications": notifications}
     return {
         "notifications": {
@@ -663,6 +666,7 @@ def inject_notifications():
             "adoption_applications": [],
             "application_status_notifications": [],
             "shelter_requests": [],
+            "staff_requests": [],
         }
     }
 
@@ -762,22 +766,25 @@ def deny_shelter(shelter_id):
 def manage_shelter(shelter_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
+
     user_id = session["user_id"]
+
     staff_member = ShelterStaff.query.filter_by(
         shelter_id=shelter_id, user_id=user_id
     ).first()
     if not staff_member:
         flash("You do not have permission to manage this shelter.", "error")
         return redirect(url_for("view_shelters"))
+
     shelter = Shelter.query.get(shelter_id)
     pets = Pet.query.filter_by(shelter_id=shelter_id).all()
     staff_users = ShelterStaff.query.filter_by(shelter_id=shelter_id).all()
     staff_ids = [staff.user_id for staff in staff_users]
     unadopted_pets = Pet.query.filter_by(shelter_id=shelter_id, is_adopted=False).all()
     unassociated_pets = Pet.query.filter(
-        Pet.shelter_id.is_(None),  # no shelter associated
-        Pet.user_id.in_(staff_ids),  # posted by a shelter staff member
-    ).all()  # fetch unassociated pets
+        Pet.shelter_id.is_(None),
+        Pet.user_id.in_(staff_ids),
+    ).all()
     adoption_requests = Adoption_Info.query.filter(
         Adoption_Info.pet_id.in_([pet.id for pet in pets]),
         Adoption_Info.status == "Pending",
@@ -787,15 +794,22 @@ def manage_shelter(shelter_id):
         Adoption_Info.status.in_(["Approved", "Denied"]),
     ).all()
     staff = ShelterStaff.query.filter_by(shelter_id=shelter_id).all()
+
+    staff_request_outcomes = StaffRequest.query.filter(
+        StaffRequest.requested_by == user_id,
+        StaffRequest.status.in_(["Approved", "Denied"]),
+    ).all()
+
     return render_template(
         "manage_shelter.html",
         shelter=shelter,
         pets=pets,
         unadopted_pets=unadopted_pets,
-        unassociated_pets=unassociated_pets,  # pass unassociated pets to template
+        unassociated_pets=unassociated_pets,
         adoption_requests=adoption_requests,
         adoption_history=adoption_history,
         staff=staff,
+        staff_request_outcomes=staff_request_outcomes,
     )
 
 
@@ -829,32 +843,82 @@ def add_pet_to_shelter(shelter_id):
     return redirect(url_for("manage_shelter", shelter_id=shelter_id))
 
 
-@app.route("/shelter/<int:shelter_id>/add_staff", methods=["POST"])
-def add_shelter_staff(shelter_id):
+@app.route("/shelter/<int:shelter_id>/request_add_staff", methods=["POST"])
+def request_add_staff(shelter_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
+
     user_id = session["user_id"]
-    staff_member = ShelterStaff.query.filter_by(
+
+    is_staff = ShelterStaff.query.filter_by(
         shelter_id=shelter_id, user_id=user_id
     ).first()
-    if not staff_member:
-        flash("You do not have permission to add staff to this shelter.", "error")
+    if not is_staff:
+        flash("You do not have permission to manage staff for this shelter.", "error")
         return redirect(url_for("view_shelters"))
-    new_staff_email = request.form.get("email")
-    new_staff_user = get_user_by_email(new_staff_email)
-    if not new_staff_user:
-        flash("User with this email does not exist.", "error")
+
+    requested_user_email = request.form.get("email")
+    requested_user = User.query.filter_by(email=requested_user_email).first()
+    if not requested_user:
+        flash("User with the provided email does not exist.", "error")
         return redirect(url_for("manage_shelter", shelter_id=shelter_id))
-    new_staff = ShelterStaff(shelter_id=shelter_id, user_id=new_staff_user.id)
-    db.session.add(new_staff)
-    db.session.commit()
-    flash("Staff member added successfully!", "success")
+
+    existing_request = StaffRequest.query.filter_by(
+        shelter_id=shelter_id, user_id=requested_user.id, status="Pending"
+    ).first()
+    is_already_staff = ShelterStaff.query.filter_by(
+        shelter_id=shelter_id, user_id=requested_user.id
+    ).first()
+
+    if existing_request:
+        flash("A request for this user is already pending.", "error")
+    elif is_already_staff:
+        flash("This user is already a staff member.", "error")
+    else:
+        new_request = StaffRequest(
+            shelter_id=shelter_id,
+            requested_by=user_id,
+            user_id=requested_user.id,
+        )
+        db.session.add(new_request)
+        db.session.commit()
+        flash("Staff request sent successfully!", "success")
+
     return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+
+@app.route("/staff_request/<int:request_id>/<string:action>", methods=["POST"])
+def handle_staff_request(request_id, action):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    current_user_id = session["user_id"]
+    staff_request = StaffRequest.query.get(request_id)
+
+    if not staff_request or staff_request.user_id != current_user_id:
+        flash("Staff request not found or unauthorized.", "error")
+        return redirect(url_for("index"))
+
+    if action == "approve":
+        staff_request.status = "Approved"
+        new_staff_member = ShelterStaff(
+            shelter_id=staff_request.shelter_id, user_id=staff_request.user_id
+        )
+        db.session.add(new_staff_member)
+    elif action == "deny":
+        staff_request.status = "Denied"
+    else:
+        flash("Invalid action.", "error")
+        return redirect(url_for("index"))
+
+    db.session.commit()
+    flash(f"Staff request {action}d successfully!", "success")
+    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":
     # uncomment line to rebuild sql db with next deployment
     # with app.app_context():
-    #     db.drop_all()
-    #     db.create_all()
+    # db.drop_all()
+    # db.create_all()
     app.run(host="0.0.0.0", port=8080)
