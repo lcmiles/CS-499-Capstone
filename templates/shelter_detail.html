@@ -16,6 +16,9 @@
                 <p><strong>Website:</strong> <a href="{{ shelter.website }}" target="_blank">{{ shelter.website }}</a></p>
             {% endif %}
             <p>{{ shelter.description or 'No description available.' }}</p>
+            {% if session.get('user_id') and session.get('user_id') in [staff.user_id for staff in shelter.staff] %}
+                <a href="{{ url_for('manage_shelter', shelter_id=shelter.id) }}" class="button">Manage Shelter</a>
+            {% endif %}
         </div>
 
         <hr>

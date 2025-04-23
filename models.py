@@ -377,4 +377,24 @@ class Shelter(db.Model):
     contact_email = db.Column(db.String(120), nullable=True)
     website = db.Column(db.String(200), nullable=True)
     description = db.Column(db.Text, nullable=True)
+    submitted_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    is_approved = db.Column(db.Boolean, default=None)  # None = pending, True = approved, False = denied
     pets = db.relationship('Pet', backref='shelter', lazy=True)
+
+    user = db.relationship("User", backref=db.backref("submitted_shelters", lazy=True))
+
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+
+# function to check if a user is an admin
+def is_admin(email):
+    return Admin.query.filter_by(email=email).first() is not None
+
+class ShelterStaff(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    shelter_id = db.Column(db.Integer, db.ForeignKey("shelter.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    shelter = db.relationship("Shelter", backref=db.backref("staff", lazy=True))
+    user = db.relationship("User", backref=db.backref("shelter_roles", lazy=True))

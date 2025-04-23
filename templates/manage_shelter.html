@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Shelter</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h1>Manage Shelter: {{ shelter.name }}</h1>
+        <h2>Staff Members</h2>
+        <ul>
+            {% for staff in staff %}
+                <li>{{ staff.user.username }} ({{ staff.user.email }})</li>
+            {% endfor %}
+        </ul>
+        <form method="POST" action="{{ url_for('add_shelter_staff', shelter_id=shelter.id) }}">
+            <label for="email">Add Staff Member (Email):</label>
+            <input type="email" name="email" required>
+            <button type="submit" class="btn">Add Staff</button>
+        </form>
+        <h2>Pets</h2>
+        <ul>
+            {% for pet in pets %}
+                <li>{{ pet.name }} ({{ pet.breed }})</li>
+            {% endfor %}
+        </ul>
+        <h2>Adoption Requests</h2>
+        <ul>
+            {% for request in adoption_requests %}
+                <li>{{ request.full_name }} - {{ request.pet.name }} ({{ request.status }})</li>
+            {% endfor %}
+        </ul>
+        <h2>Adoption History</h2>
+        <ul>
+            {% for history in adoption_history %}
+                <li>{{ history.full_name }} - {{ history.pet.name }} ({{ history.status }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

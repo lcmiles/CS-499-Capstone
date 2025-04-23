@@ -21,8 +21,8 @@ import base64
 
 app = Flask(__name__)
 
-LOCAL_TESTING = True  # set True if running locally
-LOCAL_DB = True  # set True if using local database
+LOCAL_TESTING = False  # set True if running locally
+LOCAL_DB = False  # set True if using local database
 
 if LOCAL_TESTING:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
@@ -57,6 +57,8 @@ CORS(app)
 db.init_app(app)
 app.config["SECRET_KEY"] = secrets.token_hex(16)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+ADMIN_EMAILS = ["lcmiles@uab.edu"]  # hardcoded admin emails
 
 storage_client = storage.Client()
 bucket = storage_client.bucket(app.config["GCS_BUCKET"])
@@ -523,7 +525,7 @@ def remove_saved_pet(pet_id):
 # helper function to load likes
 @app.context_processor
 def utility_processor():
-    return dict(get_likes=get_likes)
+    return dict(get_likes=get_likes, is_admin=is_admin)
 
 
 # routing to handle adoption application
@@ -610,24 +612,34 @@ def inject_notifications():
             Adoption_Info.adopter_id == current_user_id,
             Adoption_Info.status.in_(["Approved", "Denied"])
         ).all()
+        shelter_requests = []
+        # Store only serializable data for shelter roles
+        shelter_roles = ShelterStaff.query.filter_by(user_id=current_user_id).all()
+        session["shelter_roles"] = [
+            {"shelter_id": role.shelter_id, "shelter_name": role.shelter.name}
+            for role in shelter_roles
+        ]
+        if is_admin(get_user_by_id(current_user_id).email):  # Check if the user is an admin
+            shelter_requests = Shelter.query.filter_by(is_approved=None).all()
         notifications = {
             "follow_requests": follow_requests,
             "adoption_applications": adoption_applications,
             "application_status_notifications": application_status_notifications,
+            "shelter_requests": shelter_requests,
         }
         return {"notifications": notifications}
-    return {"notifications": {"follow_requests": [], "adoption_applications": [], "application_status_notifications": []}}
+    return {"notifications": {"follow_requests": [], "adoption_applications": [], "application_status_notifications": [], "shelter_requests": []}}
 
 @app.route("/shelters", methods=["GET"])
 def view_shelters():
-    shelters = Shelter.query.all()
+    shelters = Shelter.query.filter_by(is_approved=True).all()  # only approved shelters
     return render_template("shelter_list.html", shelters=shelters)
 
 @app.route("/shelter/<int:shelter_id>", methods=["GET"])
 def view_shelter(shelter_id):
     shelter = Shelter.query.get(shelter_id)
-    if not shelter:
-        return "Shelter not found", 404
+    if not shelter or not shelter.is_approved:
+        return "Shelter not found or not approved", 404
     return render_template("shelter_detail.html", shelter=shelter)
 
 @app.route("/add_shelter", methods=["GET", "POST"])
@@ -645,18 +657,89 @@ def add_shelter():
             location=location,
             contact_email=email,
             website=website,
-            description=description
+            description=description,
+            submitted_by=session["user_id"],
+            is_approved=None,  # pending approval
         )
         db.session.add(shelter)
         db.session.commit()
-        flash("Shelter added!", "success")
+        flash("Shelter submitted for approval!", "success")
         return redirect(url_for("view_shelters"))
     return render_template("add_shelter.html")
 
+@app.route("/admin/shelter_requests", methods=["GET"])
+def view_shelter_requests():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    user = get_user_by_id(session["user_id"])  # retrieve the logged-in user
+    shelter_requests = Shelter.query.filter_by(is_approved=None).all()  # pending requests
+    return render_template("shelter_requests.html", shelter_requests=shelter_requests, user=user)
+
+@app.route("/admin/approve_shelter/<int:shelter_id>", methods=["POST"])
+def approve_shelter(shelter_id):
+    if "user_id" not in session or not is_admin(get_user_by_id(session["user_id"]).email):
+        return redirect(url_for("login"))
+    shelter = Shelter.query.get(shelter_id)
+    if shelter:
+        shelter.is_approved = True
+        db.session.commit()
+        if not ShelterStaff.query.filter_by(shelter_id=shelter.id, user_id=shelter.submitted_by).first():
+            staff_member = ShelterStaff(shelter_id=shelter.id, user_id=shelter.submitted_by)
+            db.session.add(staff_member)
+            db.session.commit()
+        flash("Shelter approved and staff member added!", "success")
+    return redirect(url_for("view_shelter_requests"))
+
+@app.route("/admin/deny_shelter/<int:shelter_id>", methods=["POST"])
+def deny_shelter(shelter_id):
+    if "user_id" not in session or not is_admin(get_user_by_id(session["user_id"]).email):
+        return redirect(url_for("login"))
+    shelter = Shelter.query.get(shelter_id)
+    if shelter:
+        db.session.delete(shelter)
+        db.session.commit()
+        flash("Shelter request denied!", "success")
+    return redirect(url_for("view_shelter_requests"))
+
+@app.route("/shelter/<int:shelter_id>/manage", methods=["GET"])
+def manage_shelter(shelter_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    user_id = session["user_id"]
+    staff_member = ShelterStaff.query.filter_by(shelter_id=shelter_id, user_id=user_id).first()
+    if not staff_member:
+        flash("You do not have permission to manage this shelter.", "error")
+        return redirect(url_for("view_shelters"))
+    shelter = Shelter.query.get(shelter_id)
+    pets = Pet.query.filter_by(shelter_id=shelter_id).all()
+    adoption_requests = Adoption_Info.query.filter(Adoption_Info.pet_id.in_([pet.id for pet in pets]), Adoption_Info.status == "Pending").all()
+    adoption_history = Adoption_Info.query.filter(Adoption_Info.pet_id.in_([pet.id for pet in pets]), Adoption_Info.status.in_(["Approved", "Denied"])).all()
+    staff = ShelterStaff.query.filter_by(shelter_id=shelter_id).all()
+    return render_template("manage_shelter.html", shelter=shelter, pets=pets, adoption_requests=adoption_requests, adoption_history=adoption_history, staff=staff)
+
+@app.route("/shelter/<int:shelter_id>/add_staff", methods=["POST"])
+def add_shelter_staff(shelter_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    user_id = session["user_id"]
+    staff_member = ShelterStaff.query.filter_by(shelter_id=shelter_id, user_id=user_id).first()
+    if not staff_member:
+        flash("You do not have permission to add staff to this shelter.", "error")
+        return redirect(url_for("view_shelters"))
+    new_staff_email = request.form.get("email")
+    new_staff_user = get_user_by_email(new_staff_email)
+    if not new_staff_user:
+        flash("User with this email does not exist.", "error")
+        return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+    new_staff = ShelterStaff(shelter_id=shelter_id, user_id=new_staff_user.id)
+    db.session.add(new_staff)
+    db.session.commit()
+    flash("Staff member added successfully!", "success")
+    return redirect(url_for("manage_shelter", shelter_id=shelter_id))
 
 if __name__ == "__main__":
     # uncomment line to rebuild sql db with next deployment
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
+    # with app.app_context():
+    #     db.drop_all()
+    #     db.create_all()
     app.run(host="0.0.0.0", port=8080)

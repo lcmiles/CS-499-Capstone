@@ -1027,3 +1027,17 @@ button:disabled {
     font-size: 18px;
     color: #888;
 }
+
+.admin-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    margin-left: 10px;
+    text-align: center;
+    width: fit-content;
+    background-color: rgba(255, 0, 0, 0.7);
+    margin-bottom: 30px;
+}

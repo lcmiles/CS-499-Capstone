@@ -7,7 +7,7 @@
 <body>
     {% include 'navbar.html' %}
     <div class="container">
-        <h2>Animal Shelters</h2>
+        <h1>Animal Shelters</h1>
         <div class="shelter-grid">
             {% for shelter in shelters %}
                 <div class="shelter-card" onclick="location.href='{{ url_for('view_shelter', shelter_id=shelter.id) }}';">
@@ -21,7 +21,7 @@
                 </div>
             {% endfor %}
         </div>
-        <a href="{{ url_for('add_shelter') }}" class="btn">Add New Shelter</a>
+        <button class="submit" onclick="location.href='{{ url_for('add_shelter') }}'">Request New Shelter</button>
     </div>
 </body>
 </html>
