@@ -1,24 +1,34 @@
 <div class="navbar">
 
     <div class="left-navbar">
-        <a href="{{ url_for('index') }}" class="home-btn">Home</a>
-        <a href="{{ url_for('create_post') }}" class="create-post-btn">Create Pet Listing</a>
-        <a href="{{ url_for('search_users') }}" class="create-post-btn">Search Users</a>
-        <a href="{{ url_for('search_pets_route') }}" class="create-post-btn">Search Pets</a>
-        <a href="{{ url_for('saved_pets') }}" class="create-post-btn">Saved Pets</a>
-        <a href="{{ url_for('view_shelters') }}" class="create-post-btn">Shelters</a>
+        <a href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='assets/logo_small.png') }}" alt="Blazing Adoptions Logo" class="navbar-logo">
+        </a>
     </div>
 
-    <img src="{{ url_for('static', filename='assets/logo_small.png') }}" alt="Blazing Adoptions Logo" class="navbar-logo">
+    <div class="center-navbar">
+        <ul class="navbar-links">
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('create_post') }}" class="create-post-btn">Create Pet Listing</a>
+            {% endif %}
+            <a href="{{ url_for('search_users') }}" class="create-post-btn">Search Users</a>
+            <a href="{{ url_for('search_pets_route') }}" class="create-post-btn">Search Pets</a>
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('saved_pets') }}" class="create-post-btn">Saved Pets</a>
+            <a href="{{ url_for('view_shelters') }}" class="create-post-btn">Shelters</a>
+            {% endif %}
+        </ul>
+    </div>
 
+    {% if session.get('user_id') %}
     <div class="right-navbar">
-
         <div class="dropdown">
             <img src="{{ session['profile_picture'] }}" alt="Profile Picture" class="profile-picture"/>
             <button class="dropbtn">{{ session['username'] }} &#9662;</button>
             <div class="dropdown-content">
                 <a href="{{ url_for('view_profile', username=session['username']) }}">Profile</a>
                 <a href="{{ url_for('edit_profile') }}">Edit Profile</a>
+                <a href="{{ url_for('view_adoption_applications') }}">Adoption Applications</a>
                 <form action="{{ url_for('logout') }}" method="post" class="dropdown-logout-form">
                     <button type="submit" class="logout-btn">Logout</button>
                 </form>
@@ -26,24 +36,48 @@
         </div>
 
         <div class="notifs">
-            <button class="dropbtn"> Notifications ({{ notifs|length }}) &#9662;</button>
+            <button class="dropbtn">Notifications ({{ notifications.follow_requests|length + notifications.adoption_applications|length + notifications.application_status_notifications|length }}) &#9662;</button>
             <div class="notifs-content dropdown-content">
-                {% if notifs %}
-                {% for notif in notifs %}
-                <div>
-                    Follow request from {{ notif.follower.username }}
-                    <form action="{{ url_for('follow', user=notif.follower.id, action='approve') }}" method="post">
-                        <button type="submit" class="dropdown-link">Approve</button>
-                    </form>
-                    <form action="{{ url_for('follow', user=notif.follower.id, action='decline') }}" method="post">
-                        <button type="submit" class="dropdown-link">Decline</button>
-                    </form>
-                </div>
-                {% endfor %}
+                {% if notifications.follow_requests or notifications.adoption_applications or notifications.application_status_notifications %}
+                    {% for notif in notifications.follow_requests %}
+                        <div>
+                            Follow request from {{ notif.follower.username }}
+                            <form action="{{ url_for('follow', user=notif.follower.id, action='approve') }}" method="post">
+                                <button type="submit" class="dropdown-link">Approve</button>
+                            </form>
+                            <form action="{{ url_for('follow', user=notif.follower.id, action='decline') }}" method="post">
+                                <button type="submit" class="dropdown-link">Decline</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                    {% for notif in notifications.adoption_applications %}
+                        <div>
+                            Application for {{ notif.pet.name }} by {{ notif.adopter.username }}
+                            <form action="{{ url_for('view_adoption_applications') }}" method="get">
+                                <button type="submit" class="dropdown-link">View</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                    {% for notif in notifications.application_status_notifications %}
+                        <div>
+                            Your application for {{ notif.pet.name }} was {{ notif.status }}.
+                            <form action="{{ url_for('mark_notification_viewed', notification_id=notif.id) }}" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-link">View Pet</button>
+                            </form>
+                        </div>
+                    {% endfor %}
                 {% else %}
-                <p>No notifications</p>
+                    <p>No notifications</p>
                 {% endif %}
             </div>
         </div>
     </div>
+    {% else %}
+    <div class="right-navbar">
+        <ul class="navbar-links">
+            <a href="{{ url_for('login') }}" class="create-post-btn">Login</a>
+            <a href="{{ url_for('register') }}" class="create-post-btn">Register</a>
+        </ul>   
+    </div>
+    {% endif %}
 </div>

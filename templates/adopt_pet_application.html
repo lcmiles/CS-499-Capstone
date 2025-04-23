@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Adoption Application</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function disableSubmitButton(button) {
+            button.disabled = true;
+            button.form.submit();
+        }
+
+        function toggleOtherHomeType(select) {
+            const otherInput = document.getElementById('other_home_type');
+            if (select.value === 'Other') {
+                otherInput.style.display = 'block';
+                otherInput.required = true;
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.required = false;
+            }
+        }
+    </script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h2>Adoption Application for {{ pet.name }}</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+            messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %} {% endwith %}
+        <form action="{{ url_for('adopt_pet_application', pet_id=pet.id) }}" method="post" class="form-container">
+            <div class="form-row">
+                <label for="full_name">Full Name:</label>
+                <input type="text" id="full_name" name="full_name" required>
+            </div>
+            <div class="form-row">
+                <label for="address">Address:</label>
+                <textarea id="address" name="address" required></textarea>
+            </div>
+            <div class="form-row">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-row">
+                <label for="phone">Phone:</label>
+                <input type="text" id="phone" name="phone" required>
+            </div>
+            <div class="form-row">
+                <label for="age">Age:</label>
+                <input type="number" id="age" name="age" required>
+            </div>
+            <div class="form-row">
+                <label for="reason_for_adopting">Reason for Adopting:</label>
+                <textarea id="reason_for_adopting" name="reason_for_adopting" required></textarea>
+            </div>
+            <div class="form-row">
+                <label for="home_type">Type of Home:</label>
+                <select id="home_type" name="home_type" required onchange="toggleOtherHomeType(this)">
+                    <option value="Apartment">Apartment</option>
+                    <option value="House">House</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" id="other_home_type" name="other_home_type" placeholder="Please specify" style="display: none; margin-top: 10px;">
+            </div>
+            <div class="form-row">
+                <label for="children_info">Children (include age):</label>
+                <textarea id="children_info" name="children_info"></textarea>
+            </div>
+            <div class="form-row">
+                <label for="other_pets_info">Other Pets (species, breed, age, temperament):</label>
+                <textarea id="other_pets_info" name="other_pets_info"></textarea>
+            </div>
+            <div class="form-row">
+                <label>
+                    <input type="checkbox" id="first_time_owner" name="first_time_owner">
+                    First Time Pet Owner?
+                </label>
+            </div>
+            <div class="form-row">
+                <label>
+                    <input type="checkbox" id="home_visit_agreement" name="home_visit_agreement">
+                    Willing to do a home visit or virtual interview?
+                </label>
+            </div>
+            <div class="form-row">
+                <label>
+                    <input type="checkbox" id="fee_agreement" name="fee_agreement">
+                    Willing to pay fee if required in person?
+                </label>
+            </div>
+            <div class="form-row">
+                <label>
+                    <input type="checkbox" id="return_agreement" name="return_agreement" required>
+                    Agree to return the pet if the arrangement does not work out?
+                </label>
+            </div>
+            <div class="form-row">
+                <label for="signature">Signature:</label>
+                <input type="text" id="signature" name="signature" required>
+            </div>
+            <div class="form-row">
+                <input type="submit" value="Submit Application" onclick="disableSubmitButton(this)">
+            </div>
+        </form>
+    </div>
+</body>
+</html>

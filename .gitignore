@@ -165,3 +165,6 @@ node_modules/
 # custom ignore
 instance/database.db
 reset_db.py
+encoded_credentials.txt
+cs-499-final-project-177edd5f02ab.json
+cs-499-final-project-bc145992a16c.json
