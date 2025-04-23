@@ -21,8 +21,8 @@ import base64
 
 app = Flask(__name__)
 
-LOCAL_TESTING = False  # set True if running locally
-LOCAL_DB = False  # set True if using local database
+LOCAL_TESTING = True  # set True if running locally
+LOCAL_DB = True  # set True if using local database
 
 if LOCAL_TESTING:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
@@ -758,7 +758,7 @@ def deny_shelter(shelter_id):
     return redirect(url_for("view_shelter_requests"))
 
 
-@app.route("/shelter/<int:shelter_id>/manage", methods=["GET"])
+@app.route("/shelter/<int:shelter_id>/manage", methods=["GET", "POST"])
 def manage_shelter(shelter_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
@@ -769,25 +769,64 @@ def manage_shelter(shelter_id):
     if not staff_member:
         flash("You do not have permission to manage this shelter.", "error")
         return redirect(url_for("view_shelters"))
+
     shelter = Shelter.query.get(shelter_id)
     pets = Pet.query.filter_by(shelter_id=shelter_id).all()
+    unassociated_pets = Pet.query.filter_by(
+        shelter_id=None
+    ).all()  # fetch unassociated pets
+
     adoption_requests = Adoption_Info.query.filter(
         Adoption_Info.pet_id.in_([pet.id for pet in pets]),
         Adoption_Info.status == "Pending",
     ).all()
+
     adoption_history = Adoption_Info.query.filter(
         Adoption_Info.pet_id.in_([pet.id for pet in pets]),
         Adoption_Info.status.in_(["Approved", "Denied"]),
     ).all()
+
     staff = ShelterStaff.query.filter_by(shelter_id=shelter_id).all()
+
     return render_template(
         "manage_shelter.html",
         shelter=shelter,
         pets=pets,
+        unassociated_pets=unassociated_pets,  # pass unassociated pets to template
         adoption_requests=adoption_requests,
         adoption_history=adoption_history,
         staff=staff,
     )
+
+
+@app.route("/shelter/<int:shelter_id>/add_pet", methods=["POST"])
+def add_pet_to_shelter(shelter_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    staff_member = ShelterStaff.query.filter_by(
+        shelter_id=shelter_id, user_id=user_id
+    ).first()
+
+    if not staff_member:
+        flash("You do not have permission to manage this shelter.", "error")
+        return redirect(url_for("view_shelters"))
+
+    pet_id = request.form.get("pet_id")
+    pet = Pet.query.get(pet_id)
+
+    if pet and pet.shelter_id is None:  # Ensure the pet is not already associated
+        pet.shelter_id = shelter_id
+        db.session.commit()
+        flash(f"Pet '{pet.name}' has been associated with the shelter.", "success")
+    else:
+        flash(
+            "Invalid pet or the pet is already associated with another shelter.",
+            "error",
+        )
+
+    return redirect(url_for("manage_shelter", shelter_id=shelter_id))
 
 
 @app.route("/shelter/<int:shelter_id>/add_staff", methods=["POST"])

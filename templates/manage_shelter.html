@@ -7,7 +7,7 @@
 <body>
     {% include 'navbar.html' %}
     <div class="container">
-        <h1>Manage Shelter: {{ shelter.name }}</h1>
+        <h1>{{ shelter.name }}</h1>
         {% with messages = get_flashed_messages(with_categories=true) %} {% if
             messages %}
             <ul class="flashes">
@@ -35,23 +35,86 @@
             <button type="submit" class="btn">Add Staff</button>
         </form>
         <h2>Pets</h2>
-        <ul>
-            {% for pet in pets %}
-                <li>{{ pet.name }} ({{ pet.breed }})</li>
-            {% endfor %}
-        </ul>
+        <div class="search-results">
+            {% if pets %}
+                <ul>
+                    {% for pet in pets %}
+                        <li>
+                            <img src="{{ pet.photo }}" alt="Pet Photo" class="pet-photo">
+                            <a href="{{ url_for('view_pet', pet_id=pet.id) }}">{{ pet.name|capitalize }}</a>
+                            <p style="margin-left: 10px;">{{ pet.breed|capitalize }}</p>
+                            <span class="adoption-status {{ 'adopted' if pet.is_adopted else 'unadopted' }}">
+                                {{ 'Adopted' if pet.is_adopted else 'Unadopted' }}
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No pets found.</p>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('add_pet_to_shelter', shelter_id=shelter.id) }}">
+                <label for="pet_id">Select Pet:</label>
+                <select name="pet_id" id="pet_id" required>
+                    <option value="" disabled selected>Choose a pet</option>
+                    {% for pet in unassociated_pets %}
+                        <option value="{{ pet.id }}">{{ pet.name }} - {{ pet.breed }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn">Add Pet</button>
+            </form>
+
+        </div>
+        
         <h2>Adoption Requests</h2>
-        <ul>
-            {% for request in adoption_requests %}
-                <li>{{ request.full_name }} - {{ request.pet.name }} ({{ request.status }})</li>
+        {% if applications %}
+            {% for application in applications %}
+                <div class="application" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+                    <p><strong>Adopter Name:</strong> {{ application.full_name }}</p>
+                    <p><strong>Address:</strong> {{ application.address }}</p>
+                    <p><strong>Email:</strong> {{ application.email }}</p>
+                    <p><strong>Phone:</strong> {{ application.phone }}</p>
+                    <p><strong>Age:</strong> {{ application.age }}</p>
+                    <p><strong>Reason for Adopting:</strong> {{ application.reason_for_adopting }}</p>
+                    <p><strong>Type of Home:</strong> {{ application.home_type }}</p>
+                    <p><strong>Children Info:</strong> {{ application.children_info or "N/A" }}</p>
+                    <p><strong>First Time Pet Owner:</strong> {{ "Yes" if application.first_time_owner else "No" }}</p>
+                    <p><strong>Other Pets Info:</strong> {{ application.other_pets_info or "N/A" }}</p>
+                    <p><strong>Home Visit Agreement:</strong> {{ "Yes" if application.home_visit_agreement else "No" }}</p>
+                    <p><strong>Fee Agreement:</strong> {{ "Yes" if application.fee_agreement else "No" }}</p>
+                    <p><strong>Return Agreement:</strong> {{ "Yes" if application.return_agreement else "No" }}</p>
+                    <p><strong>Signature:</strong> {{ application.signature }}</p>
+                    <p><strong>Date Submitted:</strong> {{ application.date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    <p><strong>Status:</strong> 
+                        <span class="adoption-status {{ 'approved' if application.status == 'Approved' else 'denied' if application.status == 'Denied' else 'pending' }}">
+                            {{ application.status }}
+                        </span>
+                    </p>
+                    {% if application.status == "Pending" %}
+                        <div class="button-group">
+                            <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Approved') }}" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-link">Approve</button>
+                            </form>
+                            <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Denied') }}" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-link">Deny</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
             {% endfor %}
-        </ul>
+        {% else %}
+            <p class="adoption-requests">No adoption applications found.</p>
+        {% endif %}
         <h2>Adoption History</h2>
+        {% if history in adoption_history %}
         <ul>
             {% for history in adoption_history %}
                 <li>{{ history.full_name }} - {{ history.pet.name }} ({{ history.status }})</li>
             {% endfor %}
         </ul>
+        {% else %}
+            <p class="adoption-requests">No adoption history found.</p>
+        {% endif %}
     </div>
 </body>
 </html>
