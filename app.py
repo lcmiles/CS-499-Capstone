@@ -773,6 +773,7 @@ def manage_shelter(shelter_id):
     pets = Pet.query.filter_by(shelter_id=shelter_id).all()
     staff_users = ShelterStaff.query.filter_by(shelter_id=shelter_id).all()
     staff_ids = [staff.user_id for staff in staff_users]
+    unadopted_pets = Pet.query.filter_by(shelter_id=shelter_id, is_adopted=False).all()
     unassociated_pets = Pet.query.filter(
         Pet.shelter_id.is_(None),  # no shelter associated
         Pet.user_id.in_(staff_ids),  # posted by a shelter staff member
@@ -790,6 +791,7 @@ def manage_shelter(shelter_id):
         "manage_shelter.html",
         shelter=shelter,
         pets=pets,
+        unadopted_pets=unadopted_pets,
         unassociated_pets=unassociated_pets,  # pass unassociated pets to template
         adoption_requests=adoption_requests,
         adoption_history=adoption_history,
