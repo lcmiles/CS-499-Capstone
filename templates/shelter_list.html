@@ -10,7 +10,7 @@
         <h1>Animal Shelters</h1>
         <div class="shelter-grid">
             {% for shelter in shelters %}
-                <div class="shelter-card" onclick="location.href='{{ url_for('view_shelter', shelter_id=shelter.id) }}';">
+                <div class="shelter-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;" onclick="location.href='{{ url_for('view_shelter', shelter_id=shelter.id) }}';">
                     <h3>{{ shelter.name }}</h3>
                     <p><strong>Location:</strong> {{ shelter.location or 'N/A' }}</p>
                     <p><strong>Email:</strong> {{ shelter.contact_email or 'N/A' }}</p>
@@ -20,8 +20,8 @@
                     <p>{{ shelter.description }}</p>
                 </div>
             {% endfor %}
+            <button class="submit" onclick="location.href='{{ url_for('add_shelter') }}'">Request New Shelter</button>
         </div>
-        <button class="submit" onclick="location.href='{{ url_for('add_shelter') }}'">Request New Shelter</button>
     </div>
 </body>
 </html>

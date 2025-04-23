@@ -223,6 +223,7 @@ form {
 input[type="text"],
 input[type="email"],
 input[type="password"],
+input[type="url"],
 textarea {
     margin-bottom: 10px;
     padding: 10px;
@@ -242,6 +243,7 @@ a.button {
     font-size: 16px;
     margin-top: 15px;
     text-decoration: none;
+    align-self: center;
 }
 input[type="submit"]:hover,
 button:hover,
@@ -387,7 +389,7 @@ a.button:hover {
     resize: none;
 }
 .post-button {
-    width: 50%;
+    width: 25%;
     padding: 8px;
     border-radius: 5px;
     font-size: 14px;
@@ -799,13 +801,13 @@ button:disabled {
 .form-row input[type="text"],
 .form-row input[type="email"],
 .form-row input[type="number"],
+.form-row input[type="url"],
 .form-row textarea,
 .form-row select {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 14px;
-    width: 100%;
 }
 
 .form-row input[type="checkbox"] {
@@ -1030,12 +1032,11 @@ button:disabled {
 
 .admin-badge {
     display: inline-block;
-    padding: 5px 10px;
+    padding: 5px;
     border-radius: 10px;
     font-size: 12px;
     font-weight: bold;
     color: white;
-    margin-left: 10px;
     text-align: center;
     width: fit-content;
     background-color: rgba(255, 0, 0, 0.7);

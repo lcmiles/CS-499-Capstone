@@ -7,7 +7,16 @@
 <body>
     {% include 'navbar.html' %}
     <div class="container">
-        <h1 style="text-align: center;">Pending Shelter Requests</h1>
+        <h1 style="text-align: center;">Shelter Requests</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}        
         {% if shelter_requests %}
             {% for request in shelter_requests %}
                 <div class="application" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">

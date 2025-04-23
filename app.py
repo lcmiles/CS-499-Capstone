@@ -669,7 +669,7 @@ def inject_notifications():
 
 @app.route("/shelters", methods=["GET"])
 def view_shelters():
-    shelters = Shelter.query.all()  # only approved shelters
+    shelters = Shelter.query.filter_by(is_approved=True).all()  # only approved shelters
     return render_template("shelter_list.html", shelters=shelters)
 
 
@@ -705,11 +705,11 @@ def add_shelter():
         db.session.add(shelter)
         db.session.commit()
         flash("Shelter submitted for approval!", "success")
-        return redirect(url_for("view_shelters"))
+        return redirect(url_for("view_shelter_requests"))
     return render_template("add_shelter.html")
 
 
-@app.route("/admin/shelter_requests", methods=["GET"])
+@app.route("/shelter_requests", methods=["GET"])
 def view_shelter_requests():
     if "user_id" not in session:
         return redirect(url_for("login"))

@@ -8,32 +8,36 @@
     {% include 'navbar.html' %}
     <div class="container">
         <h1>Add a New Shelter</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class="flashes">
-                    {% for category, message in messages %}
-                        <li class="{{ category }}">{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
         <form method="POST">
-            <label for="name">Shelter Name:</label>
-            <input type="text" name="name" required>
+            <div class="form-row">
+                <label for="name">Shelter Name:</label>
+                <input type="text" name="name" required>
+            </div>
 
-            <label for="location">Location:</label>
-            <input type="text" name="location">
+            <div class="form-row">
+                <label for="location">Location:</label>
+                <input type="text" name="location">
+            </div>
 
-            <label for="contact_email">Contact Email:</label>
-            <input type="email" name="contact_email">
+            <div class="form-row">
+                <label for="contact_email">Contact Email:</label>
+                <input type="email" name="contact_email">
+            </div>
 
-            <label for="website">Website:</label>
-            <input type="url" name="website">
+            <div class="form-row">
+                <label for="website">Website:</label>
+                <input type="url" name="website">
+            </div>
 
-            <label for="description">Description:</label>
-            <textarea name="description" rows="4"></textarea>
+            <div class="form-row">
+                <label for="description">Description:</label>
+                <textarea name="description" rows="4"></textarea>
+            </div>
 
-            <button type="submit" class="btn">Add Shelter</button>
+            <div class="form-row">
+                <button type="submit" class="btn">Add Shelter</button>
+            </div>
+            
         </form>
     </div>
 </body>
