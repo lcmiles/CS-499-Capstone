@@ -58,20 +58,27 @@ The goal of this project was to develop a web application to streamline the pet 
 ├── **package.json**  - *Configuration file for managing Node.js dependencies.*  
 ├── **templates/**  - *Directory containing HTML templates for the application.*  
 │   ├── **404.html**  - *Custom 404 error page.*  
-│   ├── **500.html**  - *Custom 500 error page.*  
+│   ├── **500.html**  - *Custom 500 error page.*
+│   ├── **add_shelter.html**  - *Template for creating shelters.*
+│   ├── **adopt_pet_application.html**  - *Template for filling out pet adoption application.*
 │   ├── **create_post.html**  - *Template for creating a new post.*  
 │   ├── **edit_profile.html**  - *Template for editing user profiles.*  
 │   ├── **index.html**  - *Homepage template displaying posts.*  
-│   ├── **login.html**  - *Template for user login.*  
+│   ├── **login.html**  - *Template for user login.*
+│   ├── **login.html**  - *Template for managing shelter.*
 │   ├── **navbar.html**  - *Shared navigation bar template.*  
 │   ├── **post_page.html**  - *Template for viewing a single post.*  
 │   ├── **profile.html**  - *Template for viewing user profiles.*  
 │   ├── **register.html**  - *Template for user registration.*  
 │   ├── **saved_pets.html**  - *Template for displaying saved pets.*  
-│   ├── **search.html**  - *Template for searching users.*  
+│   ├── **search.html**  - *Template for searching users.*
+│   ├── **shelter_details.html**  - *Template for displaying shelter details for non-staff members.*
+│   ├── **shelter_list.html**  - *Template for displaying all shelters.*
+│   ├── **shelter_requests.html**  - *Template for displaying all shelter requests for admins.*
 │   ├── **search_pets.html**  - *Template for searching pets.*  
 │   ├── **thankyou.html**  - *Template for the thank-you page after registration.*  
-│   ├── **view_pet.html**  - *Template for viewing a single pet's details.*  
+│   ├── **view_pet.html**  - *Template for viewing a single pet's details.*
+│   ├── **view_adoption_aplications.html**  - *Template for viewing adoption applications.*  
 ├── **static/**  - *Directory containing static assets like CSS and images.*  
 │   ├── **style.css**  - *Main stylesheet for the application.*  
 │   ├── **assets/**  - *Directory for additional static assets.*  
