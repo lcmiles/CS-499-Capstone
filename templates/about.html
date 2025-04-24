@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>About</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="container">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Blazing Adoptions Logo" class="center-logo">
+        <h1>About Blazing Adoptions</h1>
+        <p>Blazing Adoptions is a platform designed to streamline the pet adoption process, connecting adopters with shelters and individuals looking to rehome pets. Our mission is to make pet adoption more accessible and efficient for everyone.</p>
+        
+        <h2>Meet the Team</h2>
+        <ul>
+            <li><strong>Logan Miles</strong> - <a href="https://github.com/lcmiles" target="_blank">GitHub</a></li>
+            <li><strong>Daniel Eleam</strong> - <a href="https://github.com/dmeleam" target="_blank">GitHub</a></li>
+            <li><strong>Hunter Skelton</strong> - <a href="https://github.com/skeltonh-UAB" target="_blank">GitHub</a></li>
+            <li><strong>Ryan Cruce</strong> - <a href="https://github.com/ryanc1731" target="_blank">GitHub</a></li>
+            <li><strong>Taylor Borden</strong> - <a href="https://github.com/TaylorBorden" target="_blank">GitHub</a></li>
+            <li><strong>Valeria Vergara</strong> - <a href="https://github.com/ValeriaVT3" target="_blank">GitHub</a></li>
+        </ul>
+
+        <button class="back-home-btn" onclick="window.location.href='{{ url_for('index') }}'">Back Home</button>
+    </div>
+</body>
+</html>

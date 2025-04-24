@@ -639,6 +639,13 @@ def mark_notification_viewed(notification_id):
         db.session.commit()
     return redirect(url_for("view_pet", pet_id=notification.pet_id))
 
+@app.route("/faq")
+def faq():
+    return render_template('faq.html')
+
+@app.route("/about")
+def about():
+    return render_template('about.html')
 
 @app.context_processor
 def inject_notifications():
