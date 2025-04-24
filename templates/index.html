@@ -52,7 +52,7 @@
                                 <input class="like-button" type="image" 
                                        src="{{ url_for('static', filename='assets/like-liked.png') if user and post.id in liked_posts else url_for('static', filename='assets/like-unliked.png') }}">
                             </form>
-                            <span class="like-count">{{ get_likes(post.id) }}</span>
+                            <span class="like-count" style="font-size: 24px; font-weight: bold; vertical-align: middle;">{{ get_likes(post.id) }}</span>
                         </div>
                     </div>
                 </div>

@@ -95,10 +95,15 @@ def index():
         return redirect(url_for("login"))
 
     user = None
+    liked_posts = []
     posts = get_posts()  # fetch public posts by default
 
     if "user_id" in session:
         user = get_user_by_id(session["user_id"])
+        liked_posts = [
+            like.post_id
+            for like in Like.query.filter_by(user_id=session["user_id"]).all()
+        ]
         posts = get_posts(
             current_user_id=session["user_id"]
         )  # fetch posts for logged-in users
@@ -107,7 +112,7 @@ def index():
     for post in posts:
         post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
 
-    return render_template("index.html", posts=posts, user=user)
+    return render_template("index.html", posts=posts, user=user, liked_posts=liked_posts)
 
 
 # route to load create_post.html
@@ -817,6 +822,7 @@ def manage_shelter(shelter_id):
         adoption_history=adoption_history,
         staff=staff,
         staff_request_outcomes=staff_request_outcomes,
+        staff_member=staff_member,
     )
 
 
@@ -921,6 +927,110 @@ def handle_staff_request(request_id, action):
     db.session.commit()
     flash(f"Staff request {action}d successfully", "success")
     return redirect(url_for("index"))
+
+
+@app.route("/shelter/<int:shelter_id>/remove_pet/<int:pet_id>", methods=["POST"])
+def remove_pet_from_shelter(shelter_id, pet_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    staff_member = ShelterStaff.query.filter_by(
+        shelter_id=shelter_id, user_id=user_id
+    ).first()
+
+    if not staff_member:
+        flash("You do not have permission to manage this shelter.", "error")
+        return redirect(url_for("view_shelters"))
+
+    pet = Pet.query.get(pet_id)
+    if pet and pet.shelter_id == shelter_id:
+        pet.shelter_id = None
+        db.session.commit()
+        flash(f"Pet '{pet.name}' has been removed from the shelter", "success")
+    else:
+        flash("Invalid pet or the pet is not associated with this shelter.", "error")
+
+    return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+
+@app.route("/edit_post_and_pet/<int:post_id>/<int:pet_id>", methods=["GET", "POST"])
+@app.route("/edit_post_and_pet/<int:post_id>", methods=["GET", "POST"])
+def edit_post_and_pet(post_id, pet_id=None):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    post = Post.query.get(post_id)
+    if not post or post.user_id != session["user_id"]:
+        flash("You do not have permission to edit this post.", "error")
+        return redirect(url_for("index"))
+
+    pet = Pet.query.get(pet_id) if pet_id else None
+    if pet and pet.user_id != session["user_id"]:
+        flash("You do not have permission to edit this pet.", "error")
+        return redirect(url_for("index"))
+
+    if request.method == "POST":
+        post.content = request.form.get("content")
+        if pet:
+            pet.name = request.form.get("name")
+            pet.breed = request.form.get("breed")
+            pet.age = int(request.form.get("age"))
+            pet.weight = float(request.form.get("weight"))
+            pet.description = request.form.get("description")
+        db.session.commit()
+        flash("Changes saved successfully.", "success")
+        return redirect(url_for("post_page", post_id=post.id))
+
+    return render_template("edit_post_and_pet.html", post=post, pet=pet)
+
+
+@app.route("/delete_post_and_pet/<int:post_id>/<int:pet_id>", methods=["POST"])
+@app.route("/delete_post_and_pet/<int:post_id>", methods=["POST"])
+def delete_post_and_pet(post_id, pet_id=None):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    post = Post.query.get(post_id)
+    if not post or post.user_id != session["user_id"]:
+        flash("You do not have permission to delete this post.", "error")
+        return redirect(url_for("index"))
+
+    pet = Pet.query.get(pet_id) if pet_id else None
+    if pet and pet.user_id != session["user_id"]:
+        flash("You do not have permission to delete this pet.", "error")
+        return redirect(url_for("index"))
+    Like.query.filter_by(post_id=post.id).delete()
+    Comment.query.filter_by(post_id=post.id).delete()
+    db.session.delete(post)
+    if pet:
+        db.session.delete(pet)
+    db.session.commit()
+    flash("Post and associated pet deleted successfully.", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/shelter/<int:shelter_id>/remove_staff/<int:user_id>", methods=["POST"])
+def remove_staff_from_shelter(shelter_id, user_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    current_user_id = session["user_id"]
+    current_staff_member = ShelterStaff.query.filter_by(shelter_id=shelter_id, user_id=current_user_id).first()
+
+    if not current_staff_member or current_staff_member.id != 1: # ensure the current user is the shelter owner (staff ID 1)
+        flash("You do not have permission to remove staff from this shelter.", "error")
+        return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+    staff_to_remove = ShelterStaff.query.filter_by(shelter_id=shelter_id, user_id=user_id).first()
+    if not staff_to_remove:
+        flash("Staff member not found.", "error")
+        return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+    db.session.delete(staff_to_remove)
+    db.session.commit()
+    flash("Staff member removed successfully.", "success")
+    return redirect(url_for("manage_shelter", shelter_id=shelter_id))
 
 
 if __name__ == "__main__":

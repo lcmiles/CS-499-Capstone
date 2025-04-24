@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Edit Post</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+        <script>
+            function disableSubmitButton(button) {
+                button.disabled = true;
+                button.form.submit();
+            }
+        </script>
+    </head>
+
+    <body>
+        {% include 'navbar.html' %}
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+            <p> Please edit the text and/or upload photos/videos with your post below:</p>
+            <form action="{{ url_for('edit_post_and_pet', post_id=post.id, pet_id=pet.id if pet else None) }}" method="post" enctype="multipart/form-data">
+                <textarea class="post-input-box" placeholder="Enter your text here" name="content" type="text" required>{{ post.content }}</textarea>
+                <a> Upload photos: </a> <input type="file" name="photos" accept=".png, .jpg, .jpeg, .gif" multiple>
+                <a> Upload videos: </a> <input type="file" name="videos" accept=".mp4, .avi, .mov" multiple>
+                {% if pet %}
+                <h3>Pet Information:</h3>
+                <div class="pet-info-container">
+                    <label for="pet_name">Pet Name:</label>
+                    <input class="pet-input-box" type="text" id="pet_name" name="name" value="{{ pet.name }}" required>
+                    
+                    <label for="pet_sex">Sex:</label>
+                    <select class="pet-input-box" id="pet_sex" name="sex" required>
+                        <option value="male" {% if pet.sex == "male" %}selected{% endif %}> Male </option>
+                        <option value="female" {% if pet.sex == "female" %}selected{% endif %}> Female </option>
+                    </select>
+
+                    <label for="pet_breed">Breed:</label>
+                    <input class="pet-input-box" type="text" id="pet_breed" name="breed" value="{{ pet.breed }}" required>
+                    
+                    <label for="pet_age">Age:</label>
+                    <input class="pet-input-box" type="number" step="1" id="pet_age" name="age" value="{{ pet.age }}" required>
+
+                    <label for="pet_weight">Weight:</label>
+                    <input class="pet-input-box" type="number" step="0.01" id="pet_weight" name="weight" value="{{ pet.weight }}" required>
+
+                    <label for="vaccination_status">Vaccination Status:</label>
+                    <input class="pet-input-box" type="text" id="vaccination_status" name="vaccination_status" value="{{ pet.vaccination_status }}" required>
+
+                    <label for="adoption_fee">Adoption Fee:</label>
+                    <input class="pet-input-box" type="number" step="0.01" id="adoption_fee" name="adoption_fee" value="{{ pet.adoption_fee }}">
+
+                    <label for="pet_description">Description:</label>
+                    <textarea class="pet-description-box" id="pet_description" name="description" required>{{ pet.description }}</textarea>
+                </div>
+                {% endif %}
+                <button class="post-button" type="submit" onclick="disableSubmitButton(this)">Save Changes</button>
+            </form>
+        </div>
+    </body>
+
+</html>
