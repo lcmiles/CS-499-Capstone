@@ -15,6 +15,7 @@
             <a href="{{ url_for('search_pets_route') }}" class="create-post-btn">Search Pets</a>
             {% if session.get('user_id') %}
             <a href="{{ url_for('saved_pets') }}" class="create-post-btn">Saved Pets</a>
+            <a href="{{ url_for('view_shelters') }}" class="create-post-btn">Shelters</a>
             {% endif %}
         </ul>
     </div>
@@ -28,6 +29,12 @@
                 <a href="{{ url_for('view_profile', username=session['username']) }}">Profile</a>
                 <a href="{{ url_for('edit_profile') }}">Edit Profile</a>
                 <a href="{{ url_for('view_adoption_applications') }}">Adoption Applications</a>
+                {% if is_admin(user.username) %}
+                <a href="{{ url_for('view_shelter_requests') }}">Shelter Requests</a>
+                {% endif %}
+                {% for role in session.get('shelter_roles', []) %}
+                    <a href="{{ url_for('manage_shelter', shelter_id=role.shelter_id) }}">Manage {{ role.shelter_name }}</a>
+                {% endfor %}
                 <form action="{{ url_for('logout') }}" method="post" class="dropdown-logout-form">
                     <button type="submit" class="logout-btn">Logout</button>
                 </form>
@@ -35,9 +42,11 @@
         </div>
 
         <div class="notifs">
-            <button class="dropbtn">Notifications ({{ notifications.follow_requests|length + notifications.adoption_applications|length + notifications.application_status_notifications|length }}) &#9662;</button>
+            <button class="dropbtn">
+                Notifications ({{ notifications.follow_requests|length + notifications.adoption_applications|length + notifications.application_status_notifications|length + notifications.shelter_requests|length + notifications.staff_requests|length }}) &#9662;
+            </button>
             <div class="notifs-content dropdown-content">
-                {% if notifications.follow_requests or notifications.adoption_applications or notifications.application_status_notifications %}
+                {% if notifications.follow_requests or notifications.adoption_applications or notifications.application_status_notifications or notifications.shelter_requests or notifications.staff_requests %}
                     {% for notif in notifications.follow_requests %}
                         <div>
                             Follow request from {{ notif.follower.username }}
@@ -49,6 +58,7 @@
                             </form>
                         </div>
                     {% endfor %}
+
                     {% for notif in notifications.adoption_applications %}
                         <div>
                             Application for {{ notif.pet.name }} by {{ notif.adopter.username }}
@@ -57,11 +67,33 @@
                             </form>
                         </div>
                     {% endfor %}
+
                     {% for notif in notifications.application_status_notifications %}
                         <div>
                             Your application for {{ notif.pet.name }} was {{ notif.status }}.
                             <form action="{{ url_for('mark_notification_viewed', notification_id=notif.id) }}" method="post" style="display: inline;">
                                 <button type="submit" class="dropdown-link">View Pet</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+
+                    {% for notif in notifications.shelter_requests %}
+                        <div>
+                            Shelter request: {{ notif.name }}
+                            <form action="{{ url_for('view_shelter_requests') }}" method="get">
+                                <button type="submit" class="dropdown-link">View</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+
+                    {% for notif in notifications.staff_requests %}
+                        <div>
+                            {{ notif.requesting_staff.username }} has requested you join the staff of {{ notif.shelter.name }}.
+                            <form action="{{ url_for('handle_staff_request', request_id=notif.id, action='approve') }}" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-link">Approve</button>
+                            </form>
+                            <form action="{{ url_for('handle_staff_request', request_id=notif.id, action='deny') }}" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-link">Deny</button>
                             </form>
                         </div>
                     {% endfor %}

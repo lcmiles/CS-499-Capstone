@@ -223,6 +223,7 @@ form {
 input[type="text"],
 input[type="email"],
 input[type="password"],
+input[type="url"],
 textarea {
     margin-bottom: 10px;
     padding: 10px;
@@ -242,6 +243,7 @@ a.button {
     font-size: 16px;
     margin-top: 15px;
     text-decoration: none;
+    align-self: center;
 }
 input[type="submit"]:hover,
 button:hover,
@@ -387,7 +389,7 @@ a.button:hover {
     resize: none;
 }
 .post-button {
-    width: 50%;
+    width: 25%;
     padding: 8px;
     border-radius: 5px;
     font-size: 14px;
@@ -799,13 +801,13 @@ button:disabled {
 .form-row input[type="text"],
 .form-row input[type="email"],
 .form-row input[type="number"],
+.form-row input[type="url"],
 .form-row textarea,
 .form-row select {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 14px;
-    width: 100%;
 }
 
 .form-row input[type="checkbox"] {
@@ -1026,4 +1028,69 @@ button:disabled {
 .adoption-requests {
     font-size: 18px;
     color: #888;
+}
+
+.admin-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    background-color: rgba(255, 0, 0, 0.7);
+    align-self: center;
+}
+.shelter-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    background-color: #1e8449;
+    align-self: center;
+}
+.add-pet-btn {
+    display: inline-block;
+    padding: 5px;
+    background-color: #1e8449;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 5px;
+}
+.add-pet-btn:hover {
+    background-color: #145a32;
+}
+
+.badges {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.scrollable-section {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+.scrollable-section ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.scrollable-section li {
+    margin-bottom: 10px;
 }
