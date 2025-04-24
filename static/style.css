@@ -1030,6 +1030,29 @@ button:disabled {
     color: #888;
 }
 
+.admin-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    background-color: rgba(255, 0, 0, 0.7);
+    align-self: center;
+}
+.shelter-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    background-color: #1e8449;
+    align-self: center;
+}
+
 .faq-section {
     margin: 20px 0;
 }
