@@ -85,9 +85,13 @@ The goal of this project was to develop a web application to streamline the pet 
 ├── **static/**  - *Directory containing static assets like CSS and images.*  
 │   ├── **style.css**  - *Main stylesheet for the application.*  
 │   ├── **assets/**  - *Directory for additional static assets.*  
-│   │   ├── **Icon-like-button-transparent-PNG.png**  - *Icon for the like button.*  
+│   │   ├── **like-unliked.png**  - *Icon for the like button.*  
+│   │   ├── **like-liked.png**  - *Icon for the like button after liking a post.*  
 │   │   ├── **logo.png**  - *Main logo for the application.*  
 │   │   ├── **logo_small.png**  - *Smaller version of the application logo.*  
+│   ├── **cursor/**  - *Directory for additional cursor assets.*  
+│   │   ├── **cursor-unselect.png**  - *Icon for the paw cursor.*  
+│   │   ├── **cursor-select.png**  - *Icon for the paw cursor when hovering.*  
 │   ├── **profile_pics/**  - *Directory for storing user profile pictures.*  
 │   │   ├── **default.png**  - *Default profile picture for users.*  
 
