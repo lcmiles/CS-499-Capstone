@@ -609,9 +609,14 @@ def view_adoption_applications():
     if "user_id" not in session:
         return redirect(url_for("login"))
     current_user_id = session["user_id"]
-    applications = get_adoption_applications(current_user_id)
+    submitted_applications = Adoption_Info.query.filter_by(adopter_id=current_user_id).all()
+    incoming_applications = Adoption_Info.query.filter_by(owner_id=current_user_id).all()
 
-    return render_template("view_adoption_applications.html", applications=applications)
+    return render_template(
+        "view_adoption_applications.html",
+        submitted_applications=submitted_applications,
+        incoming_applications=incoming_applications,
+    )
 
 
 # routing to handle updating adoption status

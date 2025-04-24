@@ -141,7 +141,13 @@
                                     </div>
                                 {% endif %}
                                 <div class="post-content">{{ post.content }}</div>
-                                <a style="text-align: left; display: block;">Likes: {{ get_likes(post.id) }}</a>
+                                <div class="like-section">
+                                    <form action="{{ url_for('server_like', post_id=post.id) }}" method="post" class="like-form">
+                                        <input class="like-button" type="image" 
+                                               src="{{ url_for('static', filename='assets/like-liked.png') if user and post.id in liked_posts else url_for('static', filename='assets/like-unliked.png') }}">
+                                    </form>
+                                    <span class="like-count" style="font-size: 24px; font-weight: bold; vertical-align: middle;">{{ get_likes(post.id) }}</span>
+                                </div>
                             </div>
                         </div>
                     {% endif %}
