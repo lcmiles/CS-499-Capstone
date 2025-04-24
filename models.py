@@ -40,6 +40,9 @@ class User(db.Model):
         lazy="dynamic",
     )
 
+    @property
+    def shelter_roles(self):
+        return ShelterStaff.query.filter_by(user_id=self.id).all()
 
 
 class Post(db.Model):
@@ -100,6 +103,7 @@ class Pet(db.Model):
     photo = db.Column(db.String(120), nullable=True)
     is_adopted = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    shelter_id = db.Column(db.Integer, db.ForeignKey("shelter.id"), nullable=True)
     user = db.relationship("User", backref=db.backref("adopted_pets", lazy=True))
 
 
@@ -124,6 +128,7 @@ class Adoption_Info(db.Model):
     signature = db.Column(db.String(100), nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default="Pending")  # Pending, Approved, Denied
+    username = db.Column(db.String(50), nullable=False)  
 
     adopter = db.relationship("User", foreign_keys=[adopter_id])
     owner = db.relationship("User", foreign_keys=[owner_id])
@@ -208,7 +213,7 @@ def get_post_by_id(post_id):
 
 # function to add comment to table
 def add_comment(post_id, user_id, content):
-   
+
     new_comment = Comment(post_id=post_id, user_id=user_id, content=content)
 
     db.session.add(new_comment)
@@ -223,7 +228,7 @@ def get_comments(post_id):
 
 # function to add like to table
 def like_post(post_id, user_id):
-    
+
     existing_like = Like.query.filter_by(post_id=post_id, user_id=user_id).first()
 
     if existing_like:
@@ -354,6 +359,8 @@ def __repr__(self):
 
 # Helper functions
 def create_adoption_application(data):
+    user = get_user_by_id(data["adopter_id"])
+    data["username"] = user.username  # automatically set the username
     application = Adoption_Info(**data)
     db.session.add(application)
     db.session.commit()
@@ -370,3 +377,56 @@ def update_adoption_status(application_id, status):
         pet = Pet.query.get(application.pet_id)
         pet.is_adopted = True
     db.session.commit()
+
+
+class Shelter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    location = db.Column(db.String(200), nullable=True)
+    contact_email = db.Column(db.String(120), nullable=True)
+    website = db.Column(db.String(200), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    submitted_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    is_approved = db.Column(
+        db.Boolean, default=None
+    )  # None = pending, True = approved, False = denied
+    pets = db.relationship("Pet", backref="shelter", lazy=True)
+    user = db.relationship("User", backref=db.backref("submitted_shelters", lazy=True))
+
+
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False) # using username instead of id so it can be changed by human
+
+# function to check if a user is an admin
+def is_admin(username):
+    return Admin.query.filter_by(username=username).first() is not None
+
+
+# table for shelter staff members
+class ShelterStaff(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    shelter_id = db.Column(db.Integer, db.ForeignKey("shelter.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    shelter = db.relationship("Shelter", backref=db.backref("staff", lazy=True))
+    user = db.relationship("User", backref=db.backref("shelter_roles", lazy=True))
+
+
+# function to check if a user is shelter staff
+def is_shelter_staff(user_id):
+    return ShelterStaff.query.filter_by(user_id=user_id).first() is not None
+
+
+# table for requesting staff
+class StaffRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    shelter_id = db.Column(db.Integer, db.ForeignKey("shelter.id"), nullable=False)
+    requested_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    status = db.Column(
+        db.String(20), default="Pending"
+    )  # "Pending", "Approved", "Denied"
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    shelter = db.relationship("Shelter", backref="staff_requests")
+    requested_user = db.relationship("User", foreign_keys=[user_id])
+    requesting_staff = db.relationship("User", foreign_keys=[requested_by])

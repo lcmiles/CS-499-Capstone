@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ shelter.name }}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h2>{{ shelter.name }}</h2>
+
+        <div class="shelter-details">
+            <p><strong>Location:</strong> {{ shelter.location or 'N/A' }}</p>
+            <p><strong>Email:</strong> {{ shelter.contact_email or 'N/A' }}</p>
+            {% if shelter.website %}
+                <p><strong>Website:</strong> <a href="{{ shelter.website }}" target="_blank">{{ shelter.website }}</a></p>
+            {% endif %}
+            <p>{{ shelter.description or 'No description available.' }}</p>
+            {% if user and is_shelter_staff(user.id) %}
+            <button class="submit" onclick="location.href='{{ url_for('manage_shelter', shelter_id=shelter.id) }}'">Manage Shelter</button>
+            {% endif %}
+        </div>
+
+        <hr style="margin-top: 30px;">
+
+        <h3>Available Pets</h3>
+        {% if shelter.pets %}
+            <div class="scrollable-section">
+                <div class="search-results">
+                    {% for pet in shelter.pets %}
+                        {% if not pet.is_adopted %}
+                        <li>
+                            <img src="{{ pet.photo }}" alt="Pet Photo" class="pet-photo">
+                            <a href="{{ url_for('view_pet', pet_id=pet.id) }}">{{ pet.name|capitalize }}</a>
+                            <p style="margin-left: 10px;">{{ pet.breed|capitalize }}</p>
+                            <span class="adoption-status {{ 'adopted' if pet.is_adopted else 'unadopted' }}">
+                                {{ 'Adopted' if pet.is_adopted else 'Unadopted' }}
+                            </span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <p>No pets currently listed for adoption from this shelter.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

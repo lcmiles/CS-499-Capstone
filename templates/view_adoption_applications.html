@@ -8,10 +8,65 @@
     {% include 'navbar.html' %}
     <div class="container">
         <h1 style="text-align: center;">Adoption Applications</h1>
-        {% if applications %}
-            {% for application in applications %}
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+            messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %} {% endwith %}
+        <h2>Outgoing Applications</h2>
+        {% if submitted_applications %}
+            {% for application in submitted_applications %}
+            <div class="application" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+                <p><strong>Adopter Name:</strong> {{ application.full_name }}</p>
+                <p><strong>Adopter Username: </strong> <a href="{{ url_for('view_profile', username=application.username) }}">{{ application.username }}</a></p>
+                <p><strong>Pet Name: </strong> <a href="{{ url_for('view_pet', pet_id=application.pet.id) }}">{{ application.pet.name }}</a></p>
+                <p><strong>Pet Owner Username: </strong> <a href="{{ url_for('view_profile', username=application.owner.username) }}">{{ application.owner.username }}</a></p>
+                <p><strong>Address:</strong> {{ application.address }}</p>
+                <p><strong>Email:</strong> {{ application.email }}</p>
+                <p><strong>Phone:</strong> {{ application.phone }}</p>
+                <p><strong>Age:</strong> {{ application.age }}</p>
+                <p><strong>Reason for Adopting:</strong> {{ application.reason_for_adopting }}</p>
+                <p><strong>Type of Home:</strong> {{ application.home_type }}</p>
+                <p><strong>Children Info:</strong> {{ application.children_info or "N/A" }}</p>
+                <p><strong>First Time Pet Owner:</strong> {{ "Yes" if application.first_time_owner else "No" }}</p>
+                <p><strong>Other Pets Info:</strong> {{ application.other_pets_info or "N/A" }}</p>
+                <p><strong>Home Visit Agreement:</strong> {{ "Yes" if application.home_visit_agreement else "No" }}</p>
+                <p><strong>Fee Agreement:</strong> {{ "Yes" if application.fee_agreement else "No" }}</p>
+                <p><strong>Return Agreement:</strong> {{ "Yes" if application.return_agreement else "No" }}</p>
+                <p><strong>Signature:</strong> {{ application.signature }}</p>
+                <p><strong>Date Submitted:</strong> {{ application.date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="adoption-status {{ 'approved' if application.status == 'Approved' else 'denied' if application.status == 'Denied' else 'pending' }}">
+                        {{ application.status }}
+                    </span>
+                </p>
+                {% if application.status == "Pending" and session['user_id'] == application.owner_id %}
+                    <div class="button-group">
+                        <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Approved') }}" method="post" style="display: inline;">
+                            <button type="submit" class="dropdown-link">Approve</button>
+                        </form>
+                        <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Denied') }}" method="post" style="display: inline;">
+                            <button type="submit" class="dropdown-link">Deny</button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="adoption-requests">No submitted adoption applications found.</p>
+        {% endif %}
+
+        <h2>Incoming Applications</h2>
+        {% if incoming_applications %}
+            {% for application in incoming_applications %}
                 <div class="application" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
                     <p><strong>Adopter Name:</strong> {{ application.full_name }}</p>
+                    <p><strong>Adopter Username: </strong> <a href="{{ url_for('view_profile', username=application.username) }}">{{ application.username }}</a></p>
+                    <p><strong>Pet Name: </strong> <a href="{{ url_for('view_pet', pet_id=application.pet.id) }}">{{ application.pet.name }}</a></p>
+                    <p><strong>Pet Owner Username: </strong> <a href="{{ url_for('view_profile', username=application.owner.username) }}">{{ application.owner.username }}</a></p>
                     <p><strong>Address:</strong> {{ application.address }}</p>
                     <p><strong>Email:</strong> {{ application.email }}</p>
                     <p><strong>Phone:</strong> {{ application.phone }}</p>
@@ -31,7 +86,7 @@
                             {{ application.status }}
                         </span>
                     </p>
-                    {% if application.status == "Pending" %}
+                    {% if application.status == "Pending" and session['user_id'] == application.owner_id %}
                         <div class="button-group">
                             <form action="{{ url_for('update_adoption_status_route', application_id=application.id, status='Approved') }}" method="post" style="display: inline;">
                                 <button type="submit" class="dropdown-link">Approve</button>
@@ -44,7 +99,7 @@
                 </div>
             {% endfor %}
         {% else %}
-            <p class="adoption-requests">No adoption applications found.</p>
+            <p class="adoption-requests">No incoming adoption applications found.</p>
         {% endif %}
     </div>
 </body>

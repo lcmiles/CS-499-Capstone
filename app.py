@@ -26,8 +26,8 @@ LOCAL_DB = False  # set True if using local database
 
 if LOCAL_TESTING:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
-    "cs-499-final-project-bc145992a16c.json"  # gcs service account json
-)
+        "cs-499-final-project-bc145992a16c.json"  # gcs service account json
+    )
 else:
     encoded_credentials = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
     if encoded_credentials:
@@ -57,6 +57,8 @@ CORS(app)
 db.init_app(app)
 app.config["SECRET_KEY"] = secrets.token_hex(16)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+ADMIN_EMAILS = ["lcmiles@uab.edu"]  # hardcoded admin emails
 
 storage_client = storage.Client()
 bucket = storage_client.bucket(app.config["GCS_BUCKET"])
@@ -91,19 +93,26 @@ def upload_to_gcs(file, bucket_name, folder):
 def index():
     if not User.query.first():
         return redirect(url_for("login"))
-    
+
     user = None
+    liked_posts = []
     posts = get_posts()  # fetch public posts by default
-    
+
     if "user_id" in session:
         user = get_user_by_id(session["user_id"])
-        posts = get_posts(current_user_id=session["user_id"])  # fetch posts for logged-in users
+        liked_posts = [
+            like.post_id
+            for like in Like.query.filter_by(user_id=session["user_id"]).all()
+        ]
+        posts = get_posts(
+            current_user_id=session["user_id"]
+        )  # fetch posts for logged-in users
 
     central = pytz.timezone("US/Central")
     for post in posts:
         post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
-    
-    return render_template("index.html", posts=posts, user=user)
+
+    return render_template("index.html", posts=posts, user=user, liked_posts=liked_posts)
 
 
 # route to load create_post.html
@@ -111,9 +120,9 @@ def index():
 def create_post():
     if "user_id" not in session:
 
-        flash("You must be logged in to create posts","error")
+        flash("You must be logged in to create posts", "error")
         return redirect(url_for("login"))
-    
+
     if request.method == "POST":
         user_id = session["user_id"]
         post_content = request.form.get("post")
@@ -271,7 +280,7 @@ def logout():
 # routing for a given user's profile page
 @app.route("/profile/<username>", methods=["GET"])
 def view_profile(username):
-    user = get_user_by_username(username)  # Get the profile user
+    user = get_user_by_username(username)  # get the profile user
     if not user:
         return "User not found", 404
 
@@ -279,11 +288,12 @@ def view_profile(username):
     if "user_id" in session:
         current_user_id = session["user_id"]
 
-    user_posts = get_posts(user_id=user.id)  # Get the profile user's posts
+    user_posts = get_posts(user_id=user.id)  # get the profile user's posts
     central = pytz.timezone("US/Central")
-    for post in user_posts:  # Format post timestamps
+    for post in user_posts:  # format post timestamps
         post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
 
+    shelters = user.shelter_roles  # Retrieve shelters the user is staff of
     return render_template(
         "profile.html",
         session=session,
@@ -291,6 +301,7 @@ def view_profile(username):
         current_user_id=current_user_id,
         get_follow_status=get_follow_status,
         posts=user_posts,
+        shelters=shelters,
     )
 
 
@@ -299,9 +310,9 @@ def view_profile(username):
 def edit_profile():
     if "user_id" not in session:
 
-        flash ("You must be logged into an account to edit profile.","error")
+        flash("You must be logged into an account to edit profile.", "error")
         return redirect(url_for("login"))
-    
+
     user = get_user_by_id(session["user_id"])
     if request.method == "POST":
         bio = request.form.get("bio")
@@ -334,9 +345,9 @@ def edit_profile():
 def follow():
 
     if "user_id" not in session:
-        flash ("You must be logged into an account to follow users.", "error")
+        flash("You must be logged into an account to follow users.", "error")
         return redirect(url_for("login"))
-    
+
     user = get_user_by_id(session["user_id"])
     followed_id = request.args.get("user")
     followed_user = get_user_by_id(followed_id)
@@ -365,8 +376,11 @@ def post_page(post_id):
     liked_posts = []
     if "user_id" in session:
         user = get_user_by_id(session["user_id"])
-        liked_posts = [like.post_id for like in Like.query.filter_by(user_id=session["user_id"]).all()]
-    
+        liked_posts = [
+            like.post_id
+            for like in Like.query.filter_by(user_id=session["user_id"]).all()
+        ]
+
     post = get_post_by_id(post_id).first()  # Ensure post is always initialized
     if not post:
         return "Post not found", 404
@@ -375,10 +389,12 @@ def post_page(post_id):
         if "user_id" not in session:
             flash("You must be logged into an account to comment on posts.", "error")
             return redirect(url_for("login"))
-        
+
         user_id = session["user_id"]
         comment = request.form.get("comment")
-        add_comment(post_id, user_id, comment)  # Add comment to the post in the database
+        add_comment(
+            post_id, user_id, comment
+        )  # Add comment to the post in the database
 
     pet = Pet.query.filter_by(photo=post.photos[0]).first() if post.photos else None
     comments = get_comments(post_id)  # Load comments
@@ -387,7 +403,15 @@ def post_page(post_id):
     central = pytz.timezone("US/Central")
     post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
 
-    return render_template("post_page.html", post=post, comments=comments, user=user, likes=likes, pet=pet, liked_posts=liked_posts)
+    return render_template(
+        "post_page.html",
+        post=post,
+        comments=comments,
+        user=user,
+        likes=likes,
+        pet=pet,
+        liked_posts=liked_posts,
+    )
 
 
 # routing to like posts
@@ -395,7 +419,7 @@ def post_page(post_id):
 def server_like(post_id):
 
     if "user_id" not in session:
-        flash ("You must be logged into an account to like posts.", "error")
+        flash("You must be logged into an account to like posts.", "error")
         return redirect(url_for("login"))
     user = get_user_by_id(session["user_id"])
 
@@ -413,7 +437,11 @@ def server_like(post_id):
 def search_users():
 
     query = request.args.get("query")
-    users = User.query.filter(User.username.ilike(f"%{query}%")).all() if query else User.query.all()
+    users = (
+        User.query.filter(User.username.ilike(f"%{query}%")).all()
+        if query
+        else User.query.all()
+    )
     return render_template("search.html", users=users, query=query)
 
 
@@ -433,26 +461,23 @@ def internal_error(error):
 # routing to search pets in db
 @app.route("/search_pets", methods=["GET"])
 def search_pets_route():
-    
-   # if "user_id" not in session:   this now allows for anyone to search for pets
-    #return redirect(url_for("login"))
-    
+
+    # if "user_id" not in session:   this now allows for anyone to search for pets
+    # return redirect(url_for("login"))
+
     query = request.args.get("query")
     if not query:
         pets = Pet.query.all()  # if query blank return all pets
     else:
-        pets = (
-            Pet.query.filter(  # run query against all pets in db
-                (Pet.name.ilike(f"%{query}%"))
-                | (Pet.breed.ilike(f"%{query}%"))
-                | (Pet.sex.ilike(f"%{query}%"))
-                | (Pet.age.ilike(f"%{query}%"))
-                | (Pet.weight.ilike(f"%{query}%"))
-                | (Pet.vaccination_status.ilike(f"%{query}%"))
-                | (Pet.description.ilike(f"%{query}%"))
-            )
-            .all()
-        )
+        pets = Pet.query.filter(  # run query against all pets in db
+            (Pet.name.ilike(f"%{query}%"))
+            | (Pet.breed.ilike(f"%{query}%"))
+            | (Pet.sex.ilike(f"%{query}%"))
+            | (Pet.age.ilike(f"%{query}%"))
+            | (Pet.weight.ilike(f"%{query}%"))
+            | (Pet.vaccination_status.ilike(f"%{query}%"))
+            | (Pet.description.ilike(f"%{query}%"))
+        ).all()
     return render_template("search_pets.html", pets=pets)
 
 
@@ -461,9 +486,9 @@ def search_pets_route():
 def saved_pets():
     if "user_id" not in session:
 
-        flash ("you must be logged into an account to save a pet.","error")
+        flash("you must be logged into an account to save a pet.", "error")
         return redirect(url_for("login"))
-    
+
     pets = get_saved_pets(session["user_id"])
     return render_template("saved_pets.html", pets=pets)
 
@@ -473,7 +498,10 @@ def saved_pets():
 def adopt_pet(pet_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
-    return redirect(url_for("adopt_pet_application", pet_id=pet_id)) # redirect to application page
+    return redirect(
+        url_for("adopt_pet_application", pet_id=pet_id)
+    )  # redirect to application page
+
 
 # routing to save pets to account
 @app.route("/save_pet/<int:pet_id>", methods=["POST"])
@@ -482,9 +510,9 @@ def save_pet(pet_id):
     if "user_id" not in session:
         flash("you must be logged in to save a pets info.", "error")
         return redirect(url_for("login"))
-    
+
     save_pet_to_account(pet_id, session["user_id"])
-    flash("Pet saved to your account!", "success")
+    flash("Pet saved to your account", "success")
     return redirect(url_for("saved_pets", pet_id=pet_id))
 
 
@@ -508,9 +536,9 @@ def remove_saved_pet(pet_id):
 
     if "user_id" not in session:
 
-        flash ("you must be logged into an account")
+        flash("you must be logged into an account")
         return redirect(url_for("login"))
-    
+
     user = get_user_by_id(session["user_id"])
     pet = Pet.query.get(pet_id)
     if pet in user.saved_pets:
@@ -523,7 +551,9 @@ def remove_saved_pet(pet_id):
 # helper function to load likes
 @app.context_processor
 def utility_processor():
-    return dict(get_likes=get_likes)
+    return dict(
+        get_likes=get_likes, is_admin=is_admin, is_shelter_staff=is_shelter_staff
+    )
 
 
 # routing to handle adoption application
@@ -545,7 +575,9 @@ def adopt_pet_application(pet_id):
 
         home_type = request.form.get("home_type")
         if home_type == "Other":
-            home_type = request.form.get("other_home_type")  # use the input text if "other" is selected
+            home_type = request.form.get(
+                "other_home_type"
+            )  # use the input text if "other" is selected
         data = {
             "adopter_id": session["user_id"],
             "owner_id": pet.user_id,
@@ -554,7 +586,7 @@ def adopt_pet_application(pet_id):
             "address": request.form.get("address"),
             "email": request.form.get("email"),
             "phone": request.form.get("phone"),
-            "age": age,
+            "age": request.form.get("age"),
             "reason_for_adopting": request.form.get("reason_for_adopting"),
             "home_type": home_type,
             "children_info": request.form.get("children_info"),
@@ -565,9 +597,9 @@ def adopt_pet_application(pet_id):
             "return_agreement": request.form.get("return_agreement") == "on",
             "signature": request.form.get("signature"),
         }
-        create_adoption_application(data)
-        flash("Adoption application submitted successfully!", "success")
-        return redirect(url_for("index"))
+        create_adoption_application(data)  # automatically includes username
+        flash("Adoption application submitted successfully", "success")
+        return redirect(url_for("view_adoption_applications"))
     return render_template("adopt_pet_application.html", pet=pet)
 
 
@@ -577,18 +609,25 @@ def view_adoption_applications():
     if "user_id" not in session:
         return redirect(url_for("login"))
     current_user_id = session["user_id"]
-    applications = get_adoption_applications(current_user_id)
+    submitted_applications = Adoption_Info.query.filter_by(adopter_id=current_user_id).all()
+    incoming_applications = Adoption_Info.query.filter_by(owner_id=current_user_id).all()
 
-    return render_template("view_adoption_applications.html", applications=applications)
+    return render_template(
+        "view_adoption_applications.html",
+        submitted_applications=submitted_applications,
+        incoming_applications=incoming_applications,
+    )
 
 
 # routing to handle updating adoption status
-@app.route("/update_adoption_status/<int:application_id>/<string:status>", methods=["POST"])
+@app.route(
+    "/update_adoption_status/<int:application_id>/<string:status>", methods=["POST"]
+)
 def update_adoption_status_route(application_id, status):
     if "user_id" not in session:
         return redirect(url_for("login"))
     update_adoption_status(application_id, status)
-    flash(f"Application {status} successfully!", "success")
+    flash(f"Application {status} successfully", "success")
     return redirect(url_for("index"))
 
 
@@ -600,9 +639,12 @@ def mark_notification_viewed(notification_id):
         db.session.commit()
     return redirect(url_for("view_pet", pet_id=notification.pet_id))
 
+<<<<<<< HEAD
 @app.route("/faq")
 def faq():
     return render_template('faq.html')
+=======
+>>>>>>> origin/main
 
 @app.context_processor
 def inject_notifications():
@@ -612,15 +654,395 @@ def inject_notifications():
         adoption_applications = get_adoption_notifications(current_user_id)
         application_status_notifications = Adoption_Info.query.filter(
             Adoption_Info.adopter_id == current_user_id,
-            Adoption_Info.status.in_(["Approved", "Denied"])
+            Adoption_Info.status.in_(["Approved", "Denied"]),
         ).all()
+        shelter_requests = []
+        shelter_roles = ShelterStaff.query.filter_by(user_id=current_user_id).all()
+        session["shelter_roles"] = [
+            {"shelter_id": role.shelter_id, "shelter_name": role.shelter.name}
+            for role in shelter_roles
+        ]
+        if is_admin(get_user_by_id(current_user_id).username):
+            shelter_requests = Shelter.query.filter_by(is_approved=None).all()
+
+        staff_requests = StaffRequest.query.filter_by(
+            user_id=current_user_id, status="Pending"
+        ).all()
+
         notifications = {
             "follow_requests": follow_requests,
             "adoption_applications": adoption_applications,
             "application_status_notifications": application_status_notifications,
+            "shelter_requests": shelter_requests,
+            "staff_requests": staff_requests,
         }
+
         return {"notifications": notifications}
-    return {"notifications": {"follow_requests": [], "adoption_applications": [], "application_status_notifications": []}}
+    return {
+        "notifications": {
+            "follow_requests": [],
+            "adoption_applications": [],
+            "application_status_notifications": [],
+            "shelter_requests": [],
+            "staff_requests": [],
+        }
+    }
+
+
+@app.context_processor
+def inject_user():
+    user = None
+    if "user_id" in session:
+        user = get_user_by_id(session["user_id"])
+    return {"user": user}
+
+
+@app.route("/shelters", methods=["GET"])
+def view_shelters():
+    shelters = Shelter.query.filter_by(is_approved=True).all()  # only approved shelters
+    return render_template("shelter_list.html", shelters=shelters)
+
+
+@app.route("/shelter/<int:shelter_id>", methods=["GET"])
+def view_shelter(shelter_id):
+    user = None
+    if "user_id" in session:
+        user = get_user_by_id(session["user_id"])
+    shelter = Shelter.query.get(shelter_id)
+    if not shelter or not shelter.is_approved:
+        return "Shelter not found or not approved", 404
+    return render_template("shelter_detail.html", shelter=shelter, user=user)
+
+
+@app.route("/add_shelter", methods=["GET", "POST"])
+def add_shelter():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        name = request.form.get("name")
+        location = request.form.get("location")
+        email = request.form.get("contact_email")
+        website = request.form.get("website")
+        description = request.form.get("description")
+        shelter = Shelter(
+            name=name,
+            location=location,
+            contact_email=email,
+            website=website,
+            description=description,
+            submitted_by=session["user_id"],
+            is_approved=None,  # pending approval
+        )
+        db.session.add(shelter)
+        db.session.commit()
+        flash("Shelter submitted for approval", "success")
+        return redirect(url_for("view_shelter_requests"))
+    return render_template("add_shelter.html")
+
+
+@app.route("/shelter_requests", methods=["GET"])
+def view_shelter_requests():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    user = get_user_by_id(session["user_id"])  # retrieve the logged-in user
+    shelter_requests = Shelter.query.filter_by(
+        is_approved=None
+    ).all()  # pending requests
+    return render_template(
+        "shelter_requests.html", shelter_requests=shelter_requests, user=user
+    )
+
+
+@app.route("/admin/approve_shelter/<int:shelter_id>", methods=["POST"])
+def approve_shelter(shelter_id):
+    if "user_id" not in session or not is_admin(get_user_by_id(session["user_id"]).username):  
+        return redirect(url_for("login"))
+    shelter = Shelter.query.get(shelter_id)
+    if shelter:
+        shelter.is_approved = True
+        db.session.commit()
+        if not ShelterStaff.query.filter_by(
+            shelter_id=shelter.id, user_id=shelter.submitted_by
+        ).first():
+            staff_member = ShelterStaff(
+                shelter_id=shelter.id, user_id=shelter.submitted_by
+            )
+            db.session.add(staff_member)
+            db.session.commit()
+        flash("Shelter approved and staff member added", "success")
+    return redirect(url_for("view_shelter_requests"))
+
+
+@app.route("/admin/deny_shelter/<int:shelter_id>", methods=["POST"])
+def deny_shelter(shelter_id):
+    if "user_id" not in session or not is_admin(get_user_by_id(session["user_id"]).username): 
+        return redirect(url_for("login"))
+    shelter = Shelter.query.get(shelter_id)
+    if shelter:
+        db.session.delete(shelter)
+        db.session.commit()
+        flash("Shelter request denied", "success")
+    return redirect(url_for("view_shelter_requests"))
+
+
+@app.route("/shelter/<int:shelter_id>/manage", methods=["GET", "POST"])
+def manage_shelter(shelter_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+
+    staff_member = ShelterStaff.query.filter_by(
+        shelter_id=shelter_id, user_id=user_id
+    ).first()
+    if not staff_member:
+        flash("You do not have permission to manage this shelter.", "error")
+        return redirect(url_for("view_shelters"))
+
+    shelter = Shelter.query.get(shelter_id)
+    pets = Pet.query.filter_by(shelter_id=shelter_id).all()
+    staff_users = ShelterStaff.query.filter_by(shelter_id=shelter_id).all()
+    staff_ids = [staff.user_id for staff in staff_users]
+    unadopted_pets = Pet.query.filter_by(shelter_id=shelter_id, is_adopted=False).all()
+    unassociated_pets = Pet.query.filter(
+        Pet.shelter_id.is_(None),
+        Pet.user_id.in_(staff_ids),
+    ).all()
+    adoption_requests = Adoption_Info.query.filter(
+        Adoption_Info.pet_id.in_([pet.id for pet in pets]),
+        Adoption_Info.status == "Pending",
+    ).all()
+    adoption_history = Adoption_Info.query.filter(
+        Adoption_Info.pet_id.in_([pet.id for pet in pets]),
+        Adoption_Info.status.in_(["Approved", "Denied"]),
+    ).all()
+    staff = ShelterStaff.query.filter_by(shelter_id=shelter_id).all()
+
+    staff_request_outcomes = StaffRequest.query.filter(
+        StaffRequest.requested_by == user_id,
+        StaffRequest.status.in_(["Approved", "Denied"]),
+    ).all()
+
+    return render_template(
+        "manage_shelter.html",
+        shelter=shelter,
+        pets=pets,
+        unadopted_pets=unadopted_pets,
+        unassociated_pets=unassociated_pets,
+        adoption_requests=adoption_requests,
+        adoption_history=adoption_history,
+        staff=staff,
+        staff_request_outcomes=staff_request_outcomes,
+        staff_member=staff_member,
+    )
+
+
+@app.route("/shelter/<int:shelter_id>/add_pet", methods=["POST"])
+def add_pet_to_shelter(shelter_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    staff_member = ShelterStaff.query.filter_by(
+        shelter_id=shelter_id, user_id=user_id
+    ).first()
+
+    if not staff_member:
+        flash("You do not have permission to manage this shelter.", "error")
+        return redirect(url_for("view_shelters"))
+
+    pet_id = request.form.get("pet_id")
+    pet = Pet.query.get(pet_id)
+
+    if pet and pet.shelter_id is None:
+        pet.shelter_id = shelter_id
+        db.session.commit()
+        flash(f"Pet '{pet.name}' has been added to the shelter.", "success")
+    else:
+        flash(
+            "Invalid pet or the pet is already associated with another shelter.",
+            "error",
+        )
+
+    return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+
+@app.route("/shelter/<int:shelter_id>/request_add_staff", methods=["POST"])
+def request_add_staff(shelter_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+
+    is_staff = ShelterStaff.query.filter_by(
+        shelter_id=shelter_id, user_id=user_id
+    ).first()
+    if not is_staff:
+        flash("You do not have permission to manage staff for this shelter.", "error")
+        return redirect(url_for("view_shelters"))
+
+    requested_user_username = request.form.get("username")
+    requested_user = User.query.filter_by(username=requested_user_username).first()
+    if not requested_user:
+        flash("User with the provided username does not exist.", "error")
+        return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+    existing_request = StaffRequest.query.filter_by(
+        shelter_id=shelter_id, user_id=requested_user.id, status="Pending"
+    ).first()
+    is_already_staff = ShelterStaff.query.filter_by(
+        shelter_id=shelter_id, user_id=requested_user.id
+    ).first()
+
+    if existing_request:
+        flash("A request for this user is already pending.", "error")
+    elif is_already_staff:
+        flash("This user is already a staff member.", "error")
+    else:
+        new_request = StaffRequest(
+            shelter_id=shelter_id,
+            requested_by=user_id,
+            user_id=requested_user.id,
+        )
+        db.session.add(new_request)
+        db.session.commit()
+        flash("Staff request sent successfully", "success")
+
+    return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+
+@app.route("/staff_request/<int:request_id>/<string:action>", methods=["POST"])
+def handle_staff_request(request_id, action):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    current_user_id = session["user_id"]
+    staff_request = StaffRequest.query.get(request_id)
+
+    if not staff_request or staff_request.user_id != current_user_id:
+        flash("Staff request not found or unauthorized.", "error")
+        return redirect(url_for("index"))
+
+    if action == "approve":
+        staff_request.status = "Approved"
+        new_staff_member = ShelterStaff(
+            shelter_id=staff_request.shelter_id, user_id=staff_request.user_id
+        )
+        db.session.add(new_staff_member)
+    elif action == "deny":
+        staff_request.status = "Denied"
+    else:
+        flash("Invalid action.", "error")
+        return redirect(url_for("index"))
+
+    db.session.commit()
+    flash(f"Staff request {action}d successfully", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/shelter/<int:shelter_id>/remove_pet/<int:pet_id>", methods=["POST"])
+def remove_pet_from_shelter(shelter_id, pet_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    staff_member = ShelterStaff.query.filter_by(
+        shelter_id=shelter_id, user_id=user_id
+    ).first()
+
+    if not staff_member:
+        flash("You do not have permission to manage this shelter.", "error")
+        return redirect(url_for("view_shelters"))
+
+    pet = Pet.query.get(pet_id)
+    if pet and pet.shelter_id == shelter_id:
+        pet.shelter_id = None
+        db.session.commit()
+        flash(f"Pet '{pet.name}' has been removed from the shelter", "success")
+    else:
+        flash("Invalid pet or the pet is not associated with this shelter.", "error")
+
+    return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+
+@app.route("/edit_post_and_pet/<int:post_id>/<int:pet_id>", methods=["GET", "POST"])
+@app.route("/edit_post_and_pet/<int:post_id>", methods=["GET", "POST"])
+def edit_post_and_pet(post_id, pet_id=None):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    post = Post.query.get(post_id)
+    if not post or post.user_id != session["user_id"]:
+        flash("You do not have permission to edit this post.", "error")
+        return redirect(url_for("index"))
+
+    pet = Pet.query.get(pet_id) if pet_id else None
+    if pet and pet.user_id != session["user_id"]:
+        flash("You do not have permission to edit this pet.", "error")
+        return redirect(url_for("index"))
+
+    if request.method == "POST":
+        post.content = request.form.get("content")
+        if pet:
+            pet.name = request.form.get("name")
+            pet.breed = request.form.get("breed")
+            pet.age = int(request.form.get("age"))
+            pet.weight = float(request.form.get("weight"))
+            pet.description = request.form.get("description")
+        db.session.commit()
+        flash("Changes saved successfully.", "success")
+        return redirect(url_for("post_page", post_id=post.id))
+
+    return render_template("edit_post_and_pet.html", post=post, pet=pet)
+
+
+@app.route("/delete_post_and_pet/<int:post_id>/<int:pet_id>", methods=["POST"])
+@app.route("/delete_post_and_pet/<int:post_id>", methods=["POST"])
+def delete_post_and_pet(post_id, pet_id=None):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    post = Post.query.get(post_id)
+    if not post or post.user_id != session["user_id"]:
+        flash("You do not have permission to delete this post.", "error")
+        return redirect(url_for("index"))
+
+    pet = Pet.query.get(pet_id) if pet_id else None
+    if pet and pet.user_id != session["user_id"]:
+        flash("You do not have permission to delete this pet.", "error")
+        return redirect(url_for("index"))
+    Like.query.filter_by(post_id=post.id).delete()
+    Comment.query.filter_by(post_id=post.id).delete()
+    db.session.delete(post)
+    if pet:
+        db.session.delete(pet)
+    db.session.commit()
+    flash("Post and associated pet deleted successfully.", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/shelter/<int:shelter_id>/remove_staff/<int:user_id>", methods=["POST"])
+def remove_staff_from_shelter(shelter_id, user_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    current_user_id = session["user_id"]
+    current_staff_member = ShelterStaff.query.filter_by(shelter_id=shelter_id, user_id=current_user_id).first()
+
+    if not current_staff_member or current_staff_member.id != 1: # ensure the current user is the shelter owner (staff ID 1)
+        flash("You do not have permission to remove staff from this shelter.", "error")
+        return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+    staff_to_remove = ShelterStaff.query.filter_by(shelter_id=shelter_id, user_id=user_id).first()
+    if not staff_to_remove:
+        flash("Staff member not found.", "error")
+        return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
+    db.session.delete(staff_to_remove)
+    db.session.commit()
+    flash("Staff member removed successfully.", "success")
+    return redirect(url_for("manage_shelter", shelter_id=shelter_id))
+
 
 if __name__ == "__main__":
     # uncomment line to rebuild sql db with next deployment

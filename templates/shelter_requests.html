@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Shelter Requests</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h1 style="text-align: center;">Shelter Requests</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}        
+        {% if shelter_requests %}
+            {% for request in shelter_requests %}
+                <div class="application" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
+                    <p><strong>Shelter Name:</strong> {{ request.name }}</p>
+                    <p><strong>Location:</strong> {{ request.location or "N/A" }}</p>
+                    <p><strong>Contact Email:</strong> {{ request.contact_email or "N/A" }}</p>
+                    <p><strong>Website:</strong> 
+                        {% if request.website %}
+                            <a href="{{ request.website }}" target="_blank">{{ request.website }}</a>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </p>
+                    <p><strong>Description:</strong> {{ request.description or "No description provided." }}</p>
+                    <p><strong>Submitted By:</strong> {{ request.user.username }}</p>
+                    <p><strong>Status:</strong> 
+                        <span class="adoption-status pending">Pending</span>
+                    </p>
+                    {% if is_admin(user.username) %}
+                    <div class="button-group">
+                        <form action="{{ url_for('approve_shelter', shelter_id=request.id) }}" method="post" style="display: inline;">
+                            <button type="submit" class="dropdown-link">Approve</button>
+                        </form>
+                        <form action="{{ url_for('deny_shelter', shelter_id=request.id) }}" method="post" style="display: inline;">
+                            <button type="submit" class="dropdown-link">Deny</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="adoption-requests">No shelter requests found.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

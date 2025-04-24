@@ -36,16 +36,21 @@ The goal of this project was to develop a web application to streamline the pet 
 - Process payments for applicable adoptions  
 - Update pet availability post-adoption  
 
-### Shelter Management  
-- Review and approve adoption applications  
-- Secure adoption history management    
+### Shelter Management
+- Shelter pages display pets up for adoption at shelters
+- Shelter page requests can only be approved by site admin
+- Shelter staff can:
+  - Send request to add other staff members
+  - View/add/remove pets associated with shelter that were posted by staff members
+  - View pet adoption history from the shelter
+  - View/approve/deny adoption requests for pets associated with shelter
+
 
 ## Repo structure:
 
 ├── **app.py**  - *Main Flask application file, contains routes and app configuration.*  
 ├── **models.py**  - *Database models and helper functions for interacting with the database.*  
 ├── **.gitignore**  - *Specifies files and directories to be ignored by Git.*  
-├── **cs-499-final-project-177edd5f02ab.json**  - *Google Cloud credentials file for accessing storage.*  
 ├── **Dockerfile**  - *Instructions for building the Docker image for the application.*  
 ├── **docker-compose.yaml**  - *Configuration for running the application with Docker Compose.*  
 ├── **requirements.txt**  - *List of Python dependencies required for the project.*  
@@ -53,20 +58,27 @@ The goal of this project was to develop a web application to streamline the pet 
 ├── **package.json**  - *Configuration file for managing Node.js dependencies.*  
 ├── **templates/**  - *Directory containing HTML templates for the application.*  
 │   ├── **404.html**  - *Custom 404 error page.*  
-│   ├── **500.html**  - *Custom 500 error page.*  
+│   ├── **500.html**  - *Custom 500 error page.*
+│   ├── **add_shelter.html**  - *Template for creating shelters.*
+│   ├── **adopt_pet_application.html**  - *Template for filling out pet adoption application.*
 │   ├── **create_post.html**  - *Template for creating a new post.*  
 │   ├── **edit_profile.html**  - *Template for editing user profiles.*  
 │   ├── **index.html**  - *Homepage template displaying posts.*  
-│   ├── **login.html**  - *Template for user login.*  
+│   ├── **login.html**  - *Template for user login.*
+│   ├── **login.html**  - *Template for managing shelter.*
 │   ├── **navbar.html**  - *Shared navigation bar template.*  
 │   ├── **post_page.html**  - *Template for viewing a single post.*  
 │   ├── **profile.html**  - *Template for viewing user profiles.*  
 │   ├── **register.html**  - *Template for user registration.*  
 │   ├── **saved_pets.html**  - *Template for displaying saved pets.*  
-│   ├── **search.html**  - *Template for searching users.*  
+│   ├── **search.html**  - *Template for searching users.*
+│   ├── **shelter_details.html**  - *Template for displaying shelter details for non-staff members.*
+│   ├── **shelter_list.html**  - *Template for displaying all shelters.*
+│   ├── **shelter_requests.html**  - *Template for displaying all shelter requests for admins.*
 │   ├── **search_pets.html**  - *Template for searching pets.*  
 │   ├── **thankyou.html**  - *Template for the thank-you page after registration.*  
-│   ├── **view_pet.html**  - *Template for viewing a single pet's details.*  
+│   ├── **view_pet.html**  - *Template for viewing a single pet's details.*
+│   ├── **view_adoption_aplications.html**  - *Template for viewing adoption applications.*  
 ├── **static/**  - *Directory containing static assets like CSS and images.*  
 │   ├── **style.css**  - *Main stylesheet for the application.*  
 │   ├── **assets/**  - *Directory for additional static assets.*  
