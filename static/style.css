@@ -256,6 +256,7 @@ a.button:hover {
     margin-bottom: 10px;
     background-color: #f9f9f9;
     padding-bottom: 15px;
+    border-radius: 10px;
 }
 .post-box {
     display: flex;
