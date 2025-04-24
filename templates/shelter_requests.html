@@ -35,7 +35,7 @@
                     <p><strong>Status:</strong> 
                         <span class="adoption-status pending">Pending</span>
                     </p>
-                    {% if is_admin(user.email) %}
+                    {% if is_admin(user.username) %}
                     <div class="button-group">
                         <form action="{{ url_for('approve_shelter', shelter_id=request.id) }}" method="post" style="display: inline;">
                             <button type="submit" class="dropdown-link">Approve</button>

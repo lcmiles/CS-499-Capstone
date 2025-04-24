@@ -12,6 +12,8 @@
             {% for application in applications %}
                 <div class="application" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px;">
                     <p><strong>Adopter Name:</strong> {{ application.full_name }}</p>
+                    <p><strong>Adopter Username: </strong> <a href="{{ url_for('view_profile', username=application.username) }}">{{ application.username }}</a></p>
+                    <p><strong>Pet Name: </strong> <a href="{{ url_for('view_pet', pet_id=application.pet.id) }}">{{ application.pet.name }}</a></p>
                     <p><strong>Address:</strong> {{ application.address }}</p>
                     <p><strong>Email:</strong> {{ application.email }}</p>
                     <p><strong>Phone:</strong> {{ application.phone }}</p>

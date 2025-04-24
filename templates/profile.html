@@ -21,11 +21,18 @@
             <div class="profile-box">
                 <img src="{{ user.profile_picture }}" alt="Profile Picture" class="profile-picture-profile-box"/>
                 <h1 style="margin: 0px">{{ user.username }}</h1>
-                {% if is_admin(user.email) %}
-                <div class="admin-badge">
-                    <p style="margin: 0px">Site Admin</p>
+                <div class="badges">
+                    {% if is_admin(user.username) %}
+                        <div class="admin-badge">
+                            <p style="margin: 0px">Site Admin</p>
+                        </div>
+                    {% endif %}
+                    {% for shelter in user.shelter_roles %}
+                        <div class="shelter-badge">
+                            <p style="margin: 0px">Staff at {{ shelter.shelter.name }}</p>
+                        </div>
+                    {% endfor %}
                 </div>
-                {% endif %}
                 <div class="profile-buttons">
                     {% if session['user_id'] != user.id %}
                         {% if current_user_id and get_follow_status(current_user_id, user.id) == -1 %}

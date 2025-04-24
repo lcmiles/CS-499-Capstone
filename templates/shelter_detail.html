@@ -16,7 +16,7 @@
                 <p><strong>Website:</strong> <a href="{{ shelter.website }}" target="_blank">{{ shelter.website }}</a></p>
             {% endif %}
             <p>{{ shelter.description or 'No description available.' }}</p>
-            {% if is_shelter_staff(user) %} 
+            {% if user and is_shelter_staff(user.id) %}
             <button class="submit" onclick="location.href='{{ url_for('manage_shelter', shelter_id=shelter.id) }}'">Manage Shelter</button>
             {% endif %}
         </div>

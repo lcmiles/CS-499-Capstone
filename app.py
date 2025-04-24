@@ -21,8 +21,8 @@ import base64
 
 app = Flask(__name__)
 
-LOCAL_TESTING = False  # set True if running locally
-LOCAL_DB = False  # set True if using local database
+LOCAL_TESTING = True  # set True if running locally
+LOCAL_DB = True  # set True if using local database
 
 if LOCAL_TESTING:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
@@ -288,6 +288,7 @@ def view_profile(username):
     for post in user_posts:  # format post timestamps
         post.timestamp = post.timestamp.replace(tzinfo=pytz.utc).astimezone(central)
 
+    shelters = user.shelter_roles  # Retrieve shelters the user is staff of
     return render_template(
         "profile.html",
         session=session,
@@ -295,6 +296,7 @@ def view_profile(username):
         current_user_id=current_user_id,
         get_follow_status=get_follow_status,
         posts=user_posts,
+        shelters=shelters,
     )
 
 
@@ -505,7 +507,7 @@ def save_pet(pet_id):
         return redirect(url_for("login"))
 
     save_pet_to_account(pet_id, session["user_id"])
-    flash("Pet saved to your account!", "success")
+    flash("Pet saved to your account", "success")
     return redirect(url_for("saved_pets", pet_id=pet_id))
 
 
@@ -579,7 +581,7 @@ def adopt_pet_application(pet_id):
             "address": request.form.get("address"),
             "email": request.form.get("email"),
             "phone": request.form.get("phone"),
-            "age": age,
+            "age": request.form.get("age"),
             "reason_for_adopting": request.form.get("reason_for_adopting"),
             "home_type": home_type,
             "children_info": request.form.get("children_info"),
@@ -590,9 +592,9 @@ def adopt_pet_application(pet_id):
             "return_agreement": request.form.get("return_agreement") == "on",
             "signature": request.form.get("signature"),
         }
-        create_adoption_application(data)
-        flash("Adoption application submitted successfully!", "success")
-        return redirect(url_for("index"))
+        create_adoption_application(data)  # automatically includes username
+        flash("Adoption application submitted successfully", "success")
+        return redirect(url_for("view_adoption_applications"))
     return render_template("adopt_pet_application.html", pet=pet)
 
 
@@ -615,7 +617,7 @@ def update_adoption_status_route(application_id, status):
     if "user_id" not in session:
         return redirect(url_for("login"))
     update_adoption_status(application_id, status)
-    flash(f"Application {status} successfully!", "success")
+    flash(f"Application {status} successfully", "success")
     return redirect(url_for("index"))
 
 
@@ -644,7 +646,7 @@ def inject_notifications():
             {"shelter_id": role.shelter_id, "shelter_name": role.shelter.name}
             for role in shelter_roles
         ]
-        if is_admin(get_user_by_id(current_user_id).email):
+        if is_admin(get_user_by_id(current_user_id).username):
             shelter_requests = Shelter.query.filter_by(is_approved=None).all()
 
         staff_requests = StaffRequest.query.filter_by(
@@ -671,6 +673,14 @@ def inject_notifications():
     }
 
 
+@app.context_processor
+def inject_user():
+    user = None
+    if "user_id" in session:
+        user = get_user_by_id(session["user_id"])
+    return {"user": user}
+
+
 @app.route("/shelters", methods=["GET"])
 def view_shelters():
     shelters = Shelter.query.filter_by(is_approved=True).all()  # only approved shelters
@@ -679,8 +689,9 @@ def view_shelters():
 
 @app.route("/shelter/<int:shelter_id>", methods=["GET"])
 def view_shelter(shelter_id):
+    user = None
     if "user_id" in session:
-        user = session["user_id"]
+        user = get_user_by_id(session["user_id"])
     shelter = Shelter.query.get(shelter_id)
     if not shelter or not shelter.is_approved:
         return "Shelter not found or not approved", 404
@@ -708,7 +719,7 @@ def add_shelter():
         )
         db.session.add(shelter)
         db.session.commit()
-        flash("Shelter submitted for approval!", "success")
+        flash("Shelter submitted for approval", "success")
         return redirect(url_for("view_shelter_requests"))
     return render_template("add_shelter.html")
 
@@ -728,9 +739,7 @@ def view_shelter_requests():
 
 @app.route("/admin/approve_shelter/<int:shelter_id>", methods=["POST"])
 def approve_shelter(shelter_id):
-    if "user_id" not in session or not is_admin(
-        get_user_by_id(session["user_id"]).email
-    ):
+    if "user_id" not in session or not is_admin(get_user_by_id(session["user_id"]).username):  
         return redirect(url_for("login"))
     shelter = Shelter.query.get(shelter_id)
     if shelter:
@@ -744,21 +753,19 @@ def approve_shelter(shelter_id):
             )
             db.session.add(staff_member)
             db.session.commit()
-        flash("Shelter approved and staff member added!", "success")
+        flash("Shelter approved and staff member added", "success")
     return redirect(url_for("view_shelter_requests"))
 
 
 @app.route("/admin/deny_shelter/<int:shelter_id>", methods=["POST"])
 def deny_shelter(shelter_id):
-    if "user_id" not in session or not is_admin(
-        get_user_by_id(session["user_id"]).email
-    ):
+    if "user_id" not in session or not is_admin(get_user_by_id(session["user_id"]).username): 
         return redirect(url_for("login"))
     shelter = Shelter.query.get(shelter_id)
     if shelter:
         db.session.delete(shelter)
         db.session.commit()
-        flash("Shelter request denied!", "success")
+        flash("Shelter request denied", "success")
     return redirect(url_for("view_shelter_requests"))
 
 
@@ -830,7 +837,7 @@ def add_pet_to_shelter(shelter_id):
     pet_id = request.form.get("pet_id")
     pet = Pet.query.get(pet_id)
 
-    if pet and pet.shelter_id is None:  # Ensure the pet is not already associated
+    if pet and pet.shelter_id is None:
         pet.shelter_id = shelter_id
         db.session.commit()
         flash(f"Pet '{pet.name}' has been added to the shelter.", "success")
@@ -882,7 +889,7 @@ def request_add_staff(shelter_id):
         )
         db.session.add(new_request)
         db.session.commit()
-        flash("Staff request sent successfully!", "success")
+        flash("Staff request sent successfully", "success")
 
     return redirect(url_for("manage_shelter", shelter_id=shelter_id))
 
@@ -912,13 +919,13 @@ def handle_staff_request(request_id, action):
         return redirect(url_for("index"))
 
     db.session.commit()
-    flash(f"Staff request {action}d successfully!", "success")
+    flash(f"Staff request {action}d successfully", "success")
     return redirect(url_for("index"))
 
 
 if __name__ == "__main__":
     # uncomment line to rebuild sql db with next deployment
     # with app.app_context():
-    # db.drop_all()
-    # db.create_all()
+    #     db.drop_all()
+    #     db.create_all()
     app.run(host="0.0.0.0", port=8080)

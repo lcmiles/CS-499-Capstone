@@ -40,6 +40,10 @@ class User(db.Model):
         lazy="dynamic",
     )
 
+    @property
+    def shelter_roles(self):
+        return ShelterStaff.query.filter_by(user_id=self.id).all()
+
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -124,6 +128,7 @@ class Adoption_Info(db.Model):
     signature = db.Column(db.String(100), nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default="Pending")  # Pending, Approved, Denied
+    username = db.Column(db.String(50), nullable=False)  
 
     adopter = db.relationship("User", foreign_keys=[adopter_id])
     owner = db.relationship("User", foreign_keys=[owner_id])
@@ -354,6 +359,8 @@ def __repr__(self):
 
 # Helper functions
 def create_adoption_application(data):
+    user = get_user_by_id(data["adopter_id"])
+    data["username"] = user.username  # automatically set the username
     application = Adoption_Info(**data)
     db.session.add(application)
     db.session.commit()
@@ -389,12 +396,11 @@ class Shelter(db.Model):
 
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-
+    username = db.Column(db.String(50), unique=True, nullable=False) # using username instead of id so it can be changed by human
 
 # function to check if a user is an admin
-def is_admin(email):
-    return Admin.query.filter_by(email=email).first() is not None
+def is_admin(username):
+    return Admin.query.filter_by(username=username).first() is not None
 
 
 # table for shelter staff members

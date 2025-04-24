@@ -1032,15 +1032,25 @@ button:disabled {
 
 .admin-badge {
     display: inline-block;
-    padding: 5px;
+    padding: 5px 10px;
     border-radius: 10px;
     font-size: 12px;
     font-weight: bold;
     color: white;
     text-align: center;
-    width: fit-content;
     background-color: rgba(255, 0, 0, 0.7);
-    margin-bottom: 30px;
+    align-self: center;
+}
+.shelter-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    background-color: #1e8449;
+    align-self: center;
 }
 .add-pet-btn {
     display: inline-block;
@@ -1057,4 +1067,30 @@ button:disabled {
 }
 .add-pet-btn:hover {
     background-color: #145a32;
+}
+
+.badges {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.scrollable-section {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+.scrollable-section ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.scrollable-section li {
+    margin-bottom: 10px;
 }
