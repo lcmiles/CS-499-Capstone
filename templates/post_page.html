@@ -15,7 +15,7 @@
                     <img src="{{ post.user.profile_picture }}" alt="Profile Picture" class="post-profile-picture">
                     <span class="username-container">
                         <a style="color:forestgreen" href="{{ url_for('view_profile', username=post.user.username) }}" class="username">{{ post.user.username }}</a>
-                        {% if user and user.id == post.user_id %}
+                        {% if user and (user.id == post.user_id or is_admin(user.username)) %}
                         <div class="dropdown" style="display: inline-block; margin-left: 10px;">
                             <button class="dropdown-btn">⋮</button>
                             <div class="dropdown-content">

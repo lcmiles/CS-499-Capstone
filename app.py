@@ -973,12 +973,13 @@ def edit_post_and_pet(post_id, pet_id=None):
         return redirect(url_for("login"))
 
     post = Post.query.get(post_id)
-    if not post or post.user_id != session["user_id"]:
+    user = get_user_by_id(session["user_id"])
+    if not post or (post.user_id != session["user_id"] and not is_admin(user.username)):
         flash("You do not have permission to edit this post.", "error")
         return redirect(url_for("index"))
 
     pet = Pet.query.get(pet_id) if pet_id else None
-    if pet and pet.user_id != session["user_id"]:
+    if pet and pet.user_id != session["user_id"] and not is_admin(user.username):
         flash("You do not have permission to edit this pet.", "error")
         return redirect(url_for("index"))
 
@@ -1004,14 +1005,16 @@ def delete_post_and_pet(post_id, pet_id=None):
         return redirect(url_for("login"))
 
     post = Post.query.get(post_id)
-    if not post or post.user_id != session["user_id"]:
+    user = get_user_by_id(session["user_id"])
+    if not post or (post.user_id != session["user_id"] and not is_admin(user.username)):
         flash("You do not have permission to delete this post.", "error")
         return redirect(url_for("index"))
 
     pet = Pet.query.get(pet_id) if pet_id else None
-    if pet and pet.user_id != session["user_id"]:
+    if pet and pet.user_id != session["user_id"] and not is_admin(user.username):
         flash("You do not have permission to delete this pet.", "error")
         return redirect(url_for("index"))
+
     Like.query.filter_by(post_id=post.id).delete()
     Comment.query.filter_by(post_id=post.id).delete()
     db.session.delete(post)
