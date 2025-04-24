@@ -7,6 +7,15 @@
 <body>
     {% include 'navbar.html' %}
     <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
         <h2>{{ shelter.name }}</h2>
 
         <div class="shelter-details">
@@ -16,7 +25,7 @@
                 <p><strong>Website:</strong> <a href="{{ shelter.website }}" target="_blank">{{ shelter.website }}</a></p>
             {% endif %}
             <p>{{ shelter.description or 'No description available.' }}</p>
-            {% if user and is_shelter_staff(user.id) %}
+            {% if user and user.id in shelter.staff|map(attribute='user_id') %}
             <button class="submit" onclick="location.href='{{ url_for('manage_shelter', shelter_id=shelter.id) }}'">Manage Shelter</button>
             {% endif %}
         </div>
