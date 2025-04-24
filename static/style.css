@@ -1030,7 +1030,6 @@ button:disabled {
     color: #888;
 }
 
-<<<<<<< HEAD
 .faq-section {
     margin: 20px 0;
 }
@@ -1115,70 +1114,15 @@ button:disabled {
 
 /******cursor********/
 
-*{cursor: url('/static/cursor/icons8-cat-footprint-50.png'), auto !important;}
-=======
-.admin-badge {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: bold;
-    color: white;
-    text-align: center;
-    background-color: rgba(255, 0, 0, 0.7);
-    align-self: center;
-}
-.shelter-badge {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: bold;
-    color: white;
-    text-align: center;
-    background-color: #1e8449;
-    align-self: center;
-}
-.add-pet-btn {
-    display: inline-block;
-    padding: 5px;
-    background-color: #1e8449;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 14px;
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-left: 5px;
-}
-.add-pet-btn:hover {
-    background-color: #145a32;
+*{cursor: url('/static/cursor/cursor-unselect.png'), auto !important;}
+
+a:hover, button:hover, input[type="submit"]:hover, .faq-title:hover, .dropdown-link:hover, .view-pet-btn:hover, .back-home-btn:hover {
+    cursor: url('/static/cursor/cursor-select.png'), pointer !important;
 }
 
-.badges {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 10px;
+.center-logo {
+    display: block;
+    margin: 0 auto;
+    width: 150px;
+    height: auto;
 }
-
-.scrollable-section {
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
-.scrollable-section ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-.scrollable-section li {
-    margin-bottom: 10px;
-}
->>>>>>> origin/main
