@@ -21,7 +21,7 @@ import base64
 
 app = Flask(__name__)
 
-LOCAL_TESTING = False  # set True if running locally
+LOCAL_TESTING = True  # set True if running locally
 LOCAL_DB = False  # set True if using local database
 
 if LOCAL_TESTING:
@@ -599,6 +599,10 @@ def mark_notification_viewed(notification_id):
         db.session.delete(notification)  # remove the notification after viewing
         db.session.commit()
     return redirect(url_for("view_pet", pet_id=notification.pet_id))
+
+@app.route("/faq")
+def faq():
+    return render_template('faq.html')
 
 @app.context_processor
 def inject_notifications():

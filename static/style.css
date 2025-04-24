@@ -1027,3 +1027,89 @@ button:disabled {
     font-size: 18px;
     color: #888;
 }
+
+.faq-section {
+    margin: 20px 0;
+}
+
+.faq-title {
+    background-color: #1e8449;
+    color: white;
+    cursor: pointer;
+    padding: 12px 20px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+.faq-title.active,
+.faq-title:hover {
+    background-color: #145a32;
+}
+
+.faq-content {
+    padding: 0 20px;
+    display: none;
+    overflow: hidden;
+    background-color: #f9f9f9;
+    border-left: 2px solid #ccc;
+    border-right: 2px solid #ccc;
+    border-bottom: 2px solid #ccc;
+    border-radius: 0 0 5px 5px;
+    max-height: none;
+    overflow-y: auto;
+}
+
+.faq-content ul {
+    list-style-type: none;
+    padding: 10px 0;
+}
+
+.faq-content li {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.back-home-btn {
+    margin-top: 20px;
+    background-color: #1e8449;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.back-home-btn:hover {
+    background-color: #145a32;
+}
+
+.faq-video {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+
+    margin-top: 10px;
+    border-radius: 5pc;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.faq-video iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/******cursor********/
+
+*{cursor: url('/static/cursor/icons8-cat-footprint-50.png'), auto !important;}

@@ -13,6 +13,8 @@
             {% endif %}
             <a href="{{ url_for('search_users') }}" class="create-post-btn">Search Users</a>
             <a href="{{ url_for('search_pets_route') }}" class="create-post-btn">Search Pets</a>
+            <!-- ************************ CHANGE -->
+            <a href = "{{url_for('faq') }}" class="create-post-btn">FAQ</a>
             {% if session.get('user_id') %}
             <a href="{{ url_for('saved_pets') }}" class="create-post-btn">Saved Pets</a>
             {% endif %}
