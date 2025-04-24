@@ -32,8 +32,8 @@
 
         <h2>Request to Add Staff</h2>
         <form method="POST" action="{{ url_for('request_add_staff', shelter_id=shelter.id) }}">
-            <label for="email">User Email:</label>
-            <input type="email" name="email" id="email" required>
+            <label for="username">Username:</label>
+            <input type="text" name="username" id="username" required>
             <button style="margin-left: 10px" type="submit" class="btn">Send Request</button>
         </form>
         

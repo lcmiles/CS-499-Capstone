@@ -864,10 +864,10 @@ def request_add_staff(shelter_id):
         flash("You do not have permission to manage staff for this shelter.", "error")
         return redirect(url_for("view_shelters"))
 
-    requested_user_email = request.form.get("email")
-    requested_user = User.query.filter_by(email=requested_user_email).first()
+    requested_user_username = request.form.get("username")
+    requested_user = User.query.filter_by(username=requested_user_username).first()
     if not requested_user:
-        flash("User with the provided email does not exist.", "error")
+        flash("User with the provided username does not exist.", "error")
         return redirect(url_for("manage_shelter", shelter_id=shelter_id))
 
     existing_request = StaffRequest.query.filter_by(
