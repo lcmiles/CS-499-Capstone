@@ -45,6 +45,31 @@ The goal of this project was to develop a web application to streamline the pet 
   - View pet adoption history from the shelter
   - View/approve/deny adoption requests for pets associated with shelter
 
+## Tech Stack:
+
+- **Back-end:** Flask (Python web framework)  
+  ![Python](https://img.shields.io/badge/Python-%233776AB.svg?style=for-the-badge&logo=python&logoColor=white)
+  ![Flask](https://img.shields.io/badge/Flask-%23000000.svg?style=for-the-badge&logo=flask&logoColor=white)
+
+- **Database hosting:** MySQL server  
+  ![MySQL](https://img.shields.io/badge/MySQL-%234479A1.svg?style=for-the-badge&logo=mysql&logoColor=white)
+
+- **Media storage:** Google Cloud Storage  
+  ![Google Cloud](https://img.shields.io/badge/Google%20Cloud-%234285F4.svg?style=for-the-badge&logo=googlecloud&logoColor=white)
+
+- **Containerization:** Docker  
+  ![Docker](https://img.shields.io/badge/Docker-%232496ED.svg?style=for-the-badge&logo=docker&logoColor=white)
+
+- **Deployment:** Google Cloud Run and Cloud Build  
+  ![Google Cloud](https://img.shields.io/badge/Google%20Cloud-%234285F4.svg?style=for-the-badge&logo=googlecloud&logoColor=white)
+
+- **Front-end:** HTML, CSS, JavaScript  
+  ![HTML](https://img.shields.io/badge/HTML-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)
+  ![CSS](https://img.shields.io/badge/CSS-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)
+  ![JavaScript](https://img.shields.io/badge/JavaScript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=white)
+
+- **Authentication & Security:** Hashed passwords and session management
+
 
 ## Repo structure:
 
