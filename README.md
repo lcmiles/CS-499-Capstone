@@ -68,8 +68,6 @@ The goal of this project was to develop a web application to streamline the pet 
   ![CSS](https://img.shields.io/badge/CSS-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)
   ![JavaScript](https://img.shields.io/badge/JavaScript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=white)
 
-- **Authentication & Security:** Hashed passwords and session management
-
 
 ## Repo structure:
 
