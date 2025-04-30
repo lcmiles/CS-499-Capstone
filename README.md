@@ -80,7 +80,10 @@ The goal of this project was to develop a web application to streamline the pet 
 ├── **package-lock.json**  - *Auto-generated file for locking Node.js dependencies.*  
 ├── **package.json**  - *Configuration file for managing Node.js dependencies.*  
 ├── **templates/**  - *Directory containing HTML templates for the application.*  
+│   ├── **404.html**  - *Custom 400 error page.*   
+│   ├── **404.html**  - *Custom 403 error page.*   
 │   ├── **404.html**  - *Custom 404 error page.*   
+│   ├── **404.html**  - *Custom 408 error page.*   
 │   ├── **500.html**  - *Custom 500 error page.*  
 │   ├── **about.html**  - *About page.*  
 │   ├── **add_shelter.html**  - *Template for creating shelters.*  

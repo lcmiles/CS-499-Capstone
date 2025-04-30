@@ -449,13 +449,36 @@ def search_users():
 @app.errorhandler(500)
 def internal_error(error):
     tb = traceback.format_exc()
-    return render_template("500.html", error=error, traceback=tb), 500
+    user = get_user_by_id(session["user_id"]) if "user_id" in session else None
+    return render_template("500.html", error=error, traceback=tb, user=user), 500
 
 
 # handle page not found error
 @app.errorhandler(404)
-def internal_error(error):
-    return render_template("404.html", error=error), 404
+def not_found_error(error):
+    user = get_user_by_id(session["user_id"]) if "user_id" in session else None
+    return render_template("404.html", error=error, user=user), 404
+
+
+# handle forbidden error
+@app.errorhandler(403)
+def forbidden_error(error):
+    user = get_user_by_id(session["user_id"]) if "user_id" in session else None
+    return render_template("403.html", error=error, user=user), 403
+
+
+# handle bad request error
+@app.errorhandler(400)
+def bad_request_error(error):
+    user = get_user_by_id(session["user_id"]) if "user_id" in session else None
+    return render_template("400.html", error=error, user=user), 400
+
+
+# handle timeout error
+@app.errorhandler(408)
+def request_timeout_error(error):
+    user = get_user_by_id(session["user_id"]) if "user_id" in session else None
+    return render_template("408.html", error=error, user=user), 408
 
 
 # routing to search pets in db
@@ -1046,7 +1069,6 @@ def remove_staff_from_shelter(shelter_id, user_id):
     db.session.commit()
     flash("Staff member removed successfully.", "success")
     return redirect(url_for("manage_shelter", shelter_id=shelter_id))
-
 
 if __name__ == "__main__":
     # uncomment line to rebuild sql db with next deployment

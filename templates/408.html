@@ -3,14 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Internal Server Error</title>
+        <title>Request Timeout</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
 
     <body>
         <div class="container">
-            <h1>Something went wrong on our end!</h1>
-            <p class="error-message">An unexpected error occurred. Please return home and try your request again later.</p>
+            <h1>Request Timeout</h1>
+            <p class="error-message">The server took too long to respond. Please try again later.</p>
             <div class="error-options">
                 <button class="error-button" onclick="window.location.href='{{ url_for('index') }}'"> Home </button>
                 {% if user and is_admin(user.username) %}
@@ -21,11 +21,7 @@
             <div id="error-details" style="display:none;">
                 <h2>Error Details:</h2>
                 <p>{{ error }}</p>
-                <h2>Traceback:</h2>
-                <p>{{ traceback }}</p>
             </div>
-
         </div>
     </body>
 </html>
- 
